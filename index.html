@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antizanzare Remote</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #f0f0f7; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        button { width: 80%; padding: 15px; margin: 10px; border: none; border-radius: 10px; font-size: 18px; color: white; cursor: pointer; }
+        .btn-rep { background: #34c759; }
+        .btn-ins { background: #34c759; }
+        .btn-stop { background: #ff3b30; font-weight: bold; }
+        #status { margin-top: 20px; font-weight: bold; color: #555; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Controllo Remoto</h1>
+        <div id="connection-status">Connessione al cloud...</div>
+        <hr>
+        <button class="btn-rep" onclick="sendCmd('START_REP')">AVVIA REPELLENTE</button>
+        <button class="btn-ins" onclick="sendCmd('START_INS')">AVVIA INSETTICIDA</button>
+        <button class="btn-stop" onclick="sendCmd('STOP')">STOP EMERGENZA</button>
+        <div id="status">Stato ESP32: Attesa dati...</div>
+    </div>
+
+    <script>
+        // --- CONFIGURAZIONE HIVEMQ ---
+        const host = 'wss://970da8e9d08943a6a85210f5ad0c0a35.s1.eu.hivemq.cloud:8884/mqtt';
+        const options = {
+            clientId: 'PWA_Client_' + Math.random().toString(16).substr(2, 8),
+            username: 'Antizanzare',
+            password: 'Antizanzare26!',
+        };
+
+        const client = mqtt.connect(host, options);
+
+        client.on('connect', () => {
+            document.getElementById('connection-status').innerText = "☁️ Connesso al Cloud";
+            document.getElementById('connection-status').style.color = "green";
+            client.subscribe('antizanzare/stato');
+        });
+
+        client.on('message', (topic, message) => {
+            if (topic === 'antizanzare/stato') {
+                document.getElementById('status').innerText = "Stato ESP32: " + message.toString();
+            }
+        });
+
+        function sendCmd(cmd) {
+            client.publish('antizanzare/comandi', cmd);
+            console.log("Inviato:", cmd);
+        }
+    </script>
+</body>
+</html>
