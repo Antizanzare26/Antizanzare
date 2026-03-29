@@ -2,57 +2,120 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>Antizanzare Remote</title>
+    <link rel="manifest" href="manifest.json">
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #f0f0f7; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        button { width: 80%; padding: 15px; margin: 10px; border: none; border-radius: 10px; font-size: 18px; color: white; cursor: pointer; }
-        .btn-rep { background: #34c759; }
-        .btn-ins { background: #34c759; }
-        .btn-stop { background: #ff3b30; font-weight: bold; }
-        #status { margin-top: 20px; font-weight: bold; color: #555; }
+        body { font-family: -apple-system, sans-serif; background: #f2f2f7; margin: 0; padding: 0; user-select: none; }
+        .topbar { background: #fff; padding: 15px; text-align: center; font-weight: bold; font-size: 20px; box-shadow: 0 2px 3px rgba(0,0,0,0.1); }
+        
+        /* Gestione Tab */
+        .tab-content { display: none; padding: 10px; padding-bottom: 80px; }
+        .tab-content.active { display: block; }
+        
+        .card { background: white; margin: 10px; border-radius: 15px; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
+        
+        /* Bottoni */
+        button { width: 90%; padding: 15px; border: none; border-radius: 15px; margin: 10px 0; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .btn-green { background: #34c759; color: white; }
+        .btn-red { background: #ff3b30; color: white; }
+        .btn-stop { background: #800000; color: white; font-size: 18px; }
+        
+        /* Navbar */
+        .bottomnav { position: fixed; bottom: 0; width: 100%; display: flex; background: #fff; border-top: 1px solid #ccc; padding-bottom: env(safe-area-inset-bottom); }
+        .navbtn { flex: 1; padding: 15px; text-align: center; font-size: 24px; cursor: pointer; color: #8e8e93; }
+        .navbtn.active { color: #34c759; }
+        
+        #status-label { font-size: 18px; color: #007aff; margin-top: 10px; font-weight: bold; }
+        .conn-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: red; margin-right: 5px; }
     </style>
 </head>
 <body>
+
+<div class="topbar">
+    <span id="dot" class="conn-dot"></span> ANTIZANZARE CLOUD
+</div>
+
+<div id="home" class="tab-content active">
     <div class="card">
-        <h1>Controllo Remoto</h1>
-        <div id="connection-status">Connessione al cloud...</div>
-        <hr>
-        <button class="btn-rep" onclick="sendCmd('START_REP')">AVVIA REPELLENTE</button>
-        <button class="btn-ins" onclick="sendCmd('START_INS')">AVVIA INSETTICIDA</button>
+        <h3>Comandi Manuali</h3>
+        <button class="btn-green" onclick="sendCmd('START_REP')">AVVIA REPELLENTE</button>
+        <button class="btn-green" onclick="sendCmd('START_INS')">AVVIA INSETTICIDA</button>
         <button class="btn-stop" onclick="sendCmd('STOP')">STOP EMERGENZA</button>
-        <div id="status">Stato ESP32: Attesa dati...</div>
+        <div id="status-label">Stato: Attesa...</div>
     </div>
+</div>
 
-    <script>
-        // --- CONFIGURAZIONE HIVEMQ ---
-        const host = 'wss://970da8e9d08943a6a85210f5ad0c0a35.s1.eu.hivemq.cloud:8884/mqtt';
-        const options = {
-            clientId: 'PWA_Client_' + Math.random().toString(16).substr(2, 8),
-            username: 'Antizanzare',
-            password: 'Antizanzare26!',
-        };
+<div id="timer" class="tab-content">
+    <div class="card">
+        <h3>Timer Programmati</h3>
+        <p style="color: #666;">I timer vengono gestiti direttamente dall'ESP32. Qui vedrai lo stato del ciclo attivo.</p>
+        <div id="cycle-info" style="font-size: 20px; margin-top: 20px;">--</div>
+    </div>
+</div>
 
-        const client = mqtt.connect(host, options);
+<div id="config" class="tab-content">
+    <div class="card">
+        <h3>Info Connessione</h3>
+        <p><b>Server:</b> <span id="conf-host">--</span></p>
+        <p><b>User:</b> <span id="conf-user">--</span></p>
+        <hr>
+        <p style="font-size: 12px; color: #999;">Per modificare le durate dei cicli, usa il display fisico o la pagina web locale.</p>
+    </div>
+</div>
 
-        client.on('connect', () => {
-            document.getElementById('connection-status').innerText = "☁️ Connesso al Cloud";
-            document.getElementById('connection-status').style.color = "green";
-            client.subscribe('antizanzare/stato');
-        });
+<div class="bottomnav">
+    <div class="navbtn active" id="b1" onclick="showTab('home','b1')">🏠</div>
+    <div class="navbtn" id="b2" onclick="showTab('timer','b2')">⏰</div>
+    <div class="navbtn" id="b3" onclick="showTab('config','b3')">⚙️</div>
+</div>
 
-        client.on('message', (topic, message) => {
-            if (topic === 'antizanzare/stato') {
-                document.getElementById('status').innerText = "Stato ESP32: " + message.toString();
-            }
-        });
+<script>
+    // --- INSERISCI QUI I TUOI DATI HIVEMQ ---
+    const mqtt_url = 'wss://970da8e9d08943a6a85210f5ad0c0a35.s1.eu.hivemq.cloud:8884/mqtt';
+    const mqtt_user = 'Antizanzare';
+    const mqtt_pass = 'Antizanzare26!';
 
-        function sendCmd(cmd) {
-            client.publish('antizanzare/comandi', cmd);
-            console.log("Inviato:", cmd);
-        }
-    </script>
+    document.getElementById('conf-host').innerText = mqtt_url.split('/')[2];
+    document.getElementById('conf-user').innerText = mqtt_user;
+
+    const options = {
+        clientId: 'PWA_Client_' + Math.random().toString(16).substr(2, 8),
+        username: mqtt_user,
+        password: mqtt_pass,
+    };
+
+    const client = mqtt.connect(mqtt_url, options);
+
+    client.on('connect', () => {
+        document.getElementById('dot').style.background = "#34c759";
+        client.subscribe('antizanzare/stato');
+    });
+
+    client.on('message', (topic, message) => {
+        const msg = message.toString();
+        document.getElementById('status-label').innerText = "Stato: " + msg;
+        document.getElementById('cycle-info').innerText = "Ciclo attuale: " + msg;
+    });
+
+    client.on('close', () => {
+        document.getElementById('dot').style.background = "red";
+    });
+
+    function sendCmd(cmd) {
+        client.publish('antizanzare/comandi', cmd);
+    }
+
+    // Logica per cambiare TAB
+    function showTab(tabId, btnId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.navbtn').forEach(b => b.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        document.getElementById(btnId).classList.add('active');
+    }
+</script>
+
 </body>
 </html>
