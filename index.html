@@ -7,10 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#e0e0e0">
-    
     <link rel="apple-touch-icon" href="icon-1.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="icona-1.png">
-
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <style>
         :root {
@@ -20,454 +17,124 @@
             --color-green: #34c759;
             --color-red: #ff3b30;
             --color-stop: #800000;
-            
-            /* Ombre Neumorfiche standard */
             --shadow-out: 6px 6px 12px #bebebe, -6px -6px 12px #ffffff;
             --shadow-in: inset 6px 6px 12px #bebebe, inset -6px -6px 12px #ffffff;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-neumorphic);
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            color: var(--text-primary);
-            padding-top: env(safe-area-inset-top);
-        }
+        body { font-family: -apple-system, sans-serif; background: var(--bg-neumorphic); margin: 0; padding-top: env(safe-area-inset-top); user-select: none; }
+        
+        /* Glassmorphism Bars */
+        .topbar, .bottomnav { background: rgba(224, 224, 224, 0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); position: fixed; width: 100%; z-index: 100; border-bottom: 0.5px solid rgba(0,0,0,0.05); }
+        .topbar { top: 0; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
+        .bottomnav { bottom: 0; padding-bottom: calc(env(safe-area-inset-bottom) + 10px); padding-top: 15px; display: flex; border-top: 0.5px solid rgba(0,0,0,0.05); border-bottom: none; }
 
-        /* --- TOPBAR: Glassmorfismo --- */
-        .topbar {
-            background: rgba(224, 224, 224, 0.7);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            padding: 15px 25px;
-            text-align: left;
-            border-bottom: 0.5px solid rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+        .tab-content { display: none; padding: 80px 25px 130px 25px; animation: fadeIn 0.4s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .topbar-title {
-            font-weight: 700;
-            font-size: 19px;
-            letter-spacing: -0.5px;
-        }
+        /* Neumorphic UI */
+        .section-header { background: var(--bg-neumorphic); border-radius: 15px; padding: 12px 20px; box-shadow: var(--shadow-out); margin-bottom: 25px; display: inline-block; font-weight: 600; }
+        .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        
+        .tile { background: var(--bg-neumorphic); border-radius: 25px; padding: 25px; box-shadow: var(--shadow-out); transition: 0.2s; border: none; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; }
+        .tile:active { box-shadow: var(--shadow-in); transform: scale(0.98); }
+        .tile-icon { width: 35px; height: 35px; margin-bottom: 12px; color: var(--text-secondary); }
+        .tile-label { font-weight: 600; font-size: 15px; }
 
-        .conn-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--color-red);
-            box-shadow: 0 0 5px var(--color-red);
-            transition: 0.3s;
-        }
+        .tile-stop { grid-column: span 2; background: var(--color-stop); color: white; flex-direction: row; justify-content: center; }
+        .tile-stop .tile-icon { margin: 0 15px 0 0; color: white; }
 
-        /* --- CONTENITORE TAB --- */
-        .tab-content {
-            display: none;
-            padding: 25px;
-            padding-bottom: 130px; /* Spazio per navbar */
-        }
+        .tile-active { background: var(--color-green); color: white; animation: pulse 2s infinite; }
+        .tile-active .tile-icon { color: white; }
+        @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(52,199,89,0.4); } 70% { box-shadow: 0 0 0 15px rgba(52,199,89,0); } }
 
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.4s;
-        }
+        /* Timer Styles (Dynamic) */
+        .timer-list { display: flex; flex-direction: column; gap: 15px; }
+        .timer-tile { background: var(--bg-neumorphic); border-radius: 20px; padding: 18px 25px; box-shadow: var(--shadow-out); display: flex; justify-content: space-between; align-items: center; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { transform: translateX(-10px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        /* Switch iOS */
+        .ios-switch { appearance: none; width: 51px; height: 31px; background: #bdbdbd; border-radius: 100px; position: relative; cursor: pointer; transition: 0.3s; }
+        .ios-switch:checked { background: var(--color-green); }
+        .ios-switch::before { content: ''; position: absolute; width: 27px; height: 27px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s; box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
+        .ios-switch:checked::before { transform: translateX(20px); }
 
-        /* --- TITOLI DI SEZIONE: Neumorfismo --- */
-        .section-header {
-            background: var(--bg-neumorphic);
-            border-radius: 15px;
-            padding: 12px 20px;
-            box-shadow: var(--shadow-out);
-            margin-bottom: 25px;
-            display: inline-block;
-        }
-
-        .section-title {
-            font-weight: 600;
-            font-size: 16px;
-            color: var(--text-primary);
-            margin: 0;
-        }
-
-        /* --- LAYOUT GRIGLIA & PIASTRELLE --- */
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-
-        /* Piastrella Neumorfica Base */
-        .tile {
-            background: var(--bg-neumorphic);
-            border-radius: 25px;
-            padding: 25px;
-            box-shadow: var(--shadow-out);
-            transition: all 0.2s ease;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            cursor: pointer;
-            border: none;
-        }
-
-        .tile:active {
-            box-shadow: var(--shadow-in);
-            transform: scale(0.98);
-        }
-
-        /* Icone nelle piastrelle */
-        .tile-icon {
-            width: 40px;
-            height: 40px;
-            margin-bottom: 15px;
-            color: var(--text-secondary);
-        }
-
-        /* Etichette nelle piastrelle */
-        .tile-label {
-            font-weight: 600;
-            font-size: 16px;
-            line-height: 1.2;
-        }
-
-        /* Piastrella STOP (span 2) */
-        .tile-stop {
-            grid-column: span 2;
-            background: var(--color-stop);
-            color: white;
-            flex-direction: row;
-        }
-
-        .tile-stop:active {
-            background: #600000;
-            box-shadow: inset 4px 4px 8px #400000, inset -4px -4px 8px #800000;
-        }
-
-        .tile-stop .tile-icon {
-            margin: 0 15px 0 0;
-            color: white;
-        }
-
-        /* --- STATO CICLO ATTIVO (Green Pulse) --- */
-        @keyframes pulse-green {
-            0% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.5); }
-            70% { box-shadow: 0 0 0 15px rgba(52, 199, 89, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); }
-        }
-
-        .tile-active {
-            background: var(--color-green);
-            color: white;
-            box-shadow: 0 0 10px rgba(52, 199, 89, 0.5);
-            animation: pulse-green 2s infinite;
-        }
-
-        .tile-active .tile-icon {
-            color: white;
-        }
-
-        /* --- TIMER (Layout Lista Neumorfica) --- */
-        .timer-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .timer-tile {
-            background: var(--bg-neumorphic);
-            border-radius: 20px;
-            padding: 18px 25px;
-            box-shadow: var(--shadow-out);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .timer-info {
-            display: flex;
-            align-items: center;
-        }
-
-        .timer-tile .tile-icon {
-            margin: 0 15px 0 0;
-            width: 28px;
-            height: 28px;
-            margin-bottom: 0;
-        }
-
-        .timer-label {
-            font-weight: 500;
-            font-size: 16px;
-        }
-
-        /* Switch iOS Premium */
-        .ios-switch {
-            appearance: none;
-            width: 51px; height: 31px;
-            background: #bdbdbd;
-            border-radius: 100px;
-            position: relative;
-            cursor: pointer;
-            transition: background 0.3s;
-            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .ios-switch:checked {
-            background: var(--color-green);
-        }
-
-        .ios-switch::before {
-            content: '';
-            position: absolute;
-            width: 27px; height: 27px;
-            background: white;
-            border-radius: 50%;
-            top: 2px; left: 2px;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-            transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-        }
-
-        .ios-switch:checked::before {
-            transform: translateX(20px);
-        }
-
-        /* --- STATUS PANEL --- */
-        #status-panel {
-            background: var(--bg-neumorphic);
-            border-radius: 25px;
-            padding: 25px;
-            box-shadow: var(--shadow-in);
-            margin-top: 30px;
-            text-align: center;
-        }
-
-        #status-label {
-            font-size: 15px;
-            color: var(--text-secondary);
-        }
-
-        #cycle-info {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--color-green);
-            margin-top: 8px;
-            letter-spacing: -0.5px;
-        }
-
-        /* --- NAVBAR INFERIORE: Glassmorfismo --- */
-        .bottomnav {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: rgba(224, 224, 224, 0.7);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-top: 0.5px solid rgba(0,0,0,0.05);
-            padding-bottom: calc(env(safe-area-inset-bottom) + 10px);
-            padding-top: 15px;
-            display: flex;
-            z-index: 100;
-        }
-
-        .navbtn {
-            flex: 1;
-            text-align: center;
-            cursor: pointer;
-            color: #a0a0a0;
-            transition: color 0.3s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .nav-icon {
-            width: 26px;
-            height: 26px;
-            margin-bottom: 6px;
-        }
-
-        .navtext {
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.2px;
-        }
-
-        .navbtn.active {
-            color: var(--text-primary);
-        }
-
-        /* --- INFO PAGE STYLES --- */
-        .info-card {
-            background: var(--bg-neumorphic);
-            border-radius: 20px;
-            padding: 10px 20px;
-            box-shadow: var(--shadow-out);
-        }
-
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 0.5px solid rgba(0,0,0,0.05);
-        }
-
-        .info-item:last-child { border: none; }
-
-        .info-label {
-            font-weight: 500;
-            color: var(--text-secondary);
-            font-size: 15px;
-        }
-
-        .info-value {
-            font-weight: 600;
-            color: var(--text-primary);
-            font-size: 15px;
-            font-family: monospace;
-        }
+        .navbtn { flex: 1; text-align: center; color: #a0a0a0; display: flex; flex-direction: column; align-items: center; }
+        .navbtn.active { color: var(--text-primary); }
+        .nav-icon { width: 24px; height: 24px; margin-bottom: 4px; }
+        .navtext { font-size: 10px; font-weight: 700; }
+        
+        #status-panel { background: var(--bg-neumorphic); border-radius: 25px; padding: 20px; box-shadow: var(--shadow-in); margin-top: 30px; text-align: center; }
+        .conn-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--color-red); }
     </style>
 </head>
 <body>
 
 <div class="topbar">
-    <div class="topbar-title">Antizanzare Cloud</div>
+    <div style="font-weight:700; font-size:19px;">Antizanzare</div>
     <div id="dot" class="conn-dot"></div>
 </div>
 
 <div id="home" class="tab-content active">
-    <div class="section-header">
-        <h2 class="section-title">Comandi Rapidi</h2>
-    </div>
-    
+    <div class="section-header">Comandi Rapidi</div>
     <div class="grid-container">
         <button id="tile-rep" class="tile" onclick="sendCmd('START_REP')">
             <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v10m0 0l-4-4m4 4l4-4M5 12h14c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2v-6c0-1.1.9-2 2-2z"/></svg>
-            <div class="tile-label">Avvia<br>Repellente</div>
+            <div class="tile-label">Repellente</div>
         </button>
         <button id="tile-ins" class="tile" onclick="sendCmd('START_INS')">
             <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12m0 0l4 4m-4-4l-4 4M19 12H5c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h14c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2z"/></svg>
-            <div class="tile-label">Avvia<br>Insetticida</div>
+            <div class="tile-label">Insetticida</div>
         </button>
         <button class="tile tile-stop" onclick="sendCmd('STOP')">
             <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M10 10l4 4m0-4l-4 4"/></svg>
             <div class="tile-label">STOP EMERGENZA</div>
         </button>
     </div>
-
     <div id="status-panel">
-        <div id="status-label">Stato Connessione: In attesa...</div>
-        <div id="cycle-info">--</div>
+        <div style="font-size:14px; color:var(--text-secondary)" id="status-label">In attesa...</div>
+        <div id="cycle-info" style="font-weight:700; font-size:18px; color:var(--color-green); margin-top:5px;">--</div>
     </div>
 </div>
 
 <div id="timer" class="tab-content">
-    <div class="section-header">
-        <h2 class="section-title">Programmazione Oraria</h2>
-    </div>
-    
-    <div class="timer-list">
-        <div class="timer-tile">
-            <div class="timer-info">
-                <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <div class="timer-label">Ciclo Mattina (07:00)</div>
-            </div>
-            <input type="checkbox" id="t1" class="ios-switch" onchange="toggleTimer('T1', this.checked)">
-        </div>
-        <div class="timer-tile">
-            <div class="timer-info">
-                <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                <div class="timer-label">Ciclo Sera (19:00)</div>
-            </div>
-            <input type="checkbox" id="t2" class="ios-switch" onchange="toggleTimer('T2', this.checked)">
-        </div>
+    <div class="section-header">Programmazione</div>
+    <div id="timer-container" class="timer-list">
+        <p id="timer-loading" style="text-align:center; color:#999; font-size:14px; margin-top:20px;">Ricezione cicli dall'ESP32...</p>
     </div>
 </div>
 
 <div id="config" class="tab-content">
-    <div class="section-header">
-        <h2 class="section-title">Test Hardware Manuale</h2>
-    </div>
-    
+    <div class="section-header">Test Hardware</div>
     <div class="grid-container">
-        <button class="tile" onclick="sendCmd('TEST_PMAIN')">
-            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
-            <div class="tile-label">Test Principale</div>
-        </button>
-        <button class="tile" onclick="sendCmd('TEST_P1')">
-            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-            <div class="tile-label">Test Repellente</div>
-        </button>
-        <button class="tile" onclick="sendCmd('TEST_P2')">
-            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            <div class="tile-label">Test Insetticida</div>
-        </button>
-        <button class="tile" onclick="sendCmd('TEST_VAL')">
-            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            <div class="tile-label">Test Elettrovalvola</div>
-        </button>
-    </div>
-
-    <div class="section-header" style="margin-top: 35px; margin-bottom: 20px;">
-        <h2 class="section-title">Sistema</h2>
-    </div>
-    
-    <div class="info-card">
-        <div class="info-item"><div class="info-label">Server ID</div><div class="info-value" id="conf-host">--</div></div>
-        <div class="info-item"><div class="info-label">Utente</div><div class="info-value" id="conf-user">--</div></div>
-        <div class="info-item"><div class="info-label">Versione</div><div class="info-value">Neumorphic v5.0</div></div>
+        <button class="tile" onclick="sendCmd('TEST_PMAIN')"><div class="tile-label">Pompa Princ.</div></button>
+        <button class="tile" onclick="sendCmd('TEST_P1')"><div class="tile-label">Pompa Rep.</div></button>
+        <button class="tile" onclick="sendCmd('TEST_P2')"><div class="tile-label">Pompa Ins.</div></button>
+        <button class="tile" onclick="sendCmd('TEST_VAL')"><div class="tile-label">Valvola</div></button>
     </div>
 </div>
 
 <div class="bottomnav">
     <div class="navbtn active" id="b1" onclick="showTab('home','b1')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        <span class="navtext">COMANDI</span>
+        <span class="navtext">HOME</span>
     </div>
     <div class="navbtn" id="b2" onclick="showTab('timer','b2')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span class="navtext">ORARI</span>
+        <span class="navtext">TIMER</span>
     </div>
     <div class="navbtn" id="b3" onclick="showTab('config','b3')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <span class="navtext">GESTISCI</span>
+        <span class="navtext">TEST</span>
     </div>
 </div>
 
 <script>
-    // --- DATI CONNESSONE ---
     const mqtt_url = 'wss://970da8e9d08943a6a85210f5ad0c0a35.s1.eu.hivemq.cloud:8884/mqtt';
-    const mqtt_user = 'Antizanzare';
-    const mqtt_pass = 'Antizanzare26!';
-
-    // Configurazione pagina Info
-    document.getElementById('conf-host').innerText = mqtt_url.split('/')[2].split('.')[0]; 
-    document.getElementById('conf-user').innerText = mqtt_user;
-
-    // Connessione MQTT Premium
-    const client = mqtt.connect(mqtt_url, { 
-        clientId: 'PWA_Client_' + Math.random().toString(16).substr(2, 4), 
-        username: mqtt_user, password: mqtt_pass, 
-        keepalive: 60, reconnectPeriod: 1000 
-    });
+    const client = mqtt.connect(mqtt_url, { clientId: 'PWA_' + Math.random().toString(16).substr(2, 4), username: 'Antizanzare', password: 'Antizanzare26!' });
 
     client.on('connect', () => {
         document.getElementById('dot').style.background = "var(--color-green)";
-        document.getElementById('status-label').innerText = "Sistema Online";
         client.subscribe(['antizanzare/stato', 'antizanzare/timer_status']);
     });
 
@@ -475,36 +142,55 @@
         const msg = message.toString().toUpperCase();
         
         if (topic === 'antizanzare/stato') {
+            document.getElementById('status-label').innerText = "Sistema Online";
             document.getElementById('cycle-info').innerText = msg;
-            const tileR = document.getElementById('tile-rep'), tileI = document.getElementById('tile-ins');
-            tileR.classList.remove('tile-active'); tileI.classList.remove('tile-active');
-            if (msg.includes("REPELLENTE") && !msg.includes("STOP")) tileR.classList.add('tile-active');
-            else if (msg.includes("INSETTICIDA") && !msg.includes("STOP")) tileI.classList.add('tile-active');
+            const tR = document.getElementById('tile-rep'), tI = document.getElementById('tile-ins');
+            tR.classList.remove('tile-active'); tI.classList.remove('tile-active');
+            if (msg.includes("REPELLENTE") && !msg.includes("STOP")) tR.classList.add('tile-active');
+            else if (msg.includes("INSETTICIDA") && !msg.includes("STOP")) tI.classList.add('tile-active');
         }
 
         if (topic === 'antizanzare/timer_status') {
-            msg.split(',').forEach(s => {
-                if(s.includes(':')) {
-                    const [id, val] = s.split(':');
-                    const el = document.getElementById(id.toLowerCase().trim());
-                    if (el) el.checked = (val.trim() === 'ON');
-                }
-            });
+            updateTimerList(msg);
         }
     });
 
-    client.on('close', () => { document.getElementById('dot').style.background = "var(--color-red)"; });
+    function updateTimerList(payload) {
+        const container = document.getElementById('timer-container');
+        const loadingMsg = document.getElementById('timer-loading');
+        if (loadingMsg) loadingMsg.remove();
 
-    // Funzioni Utility
-    function sendCmd(c) { if(client.connected) client.publish('antizanzare/comandi', c, { qos: 1 }); }
-    function toggleTimer(id, en) { if(client.connected) client.publish('antizanzare/set_timer', id + "_" + (en ? "ON" : "OFF"), { qos: 1 }); }
-    
+        const timers = payload.split(',');
+        timers.forEach(t => {
+            if (!t.includes(':')) return;
+            const [id, status] = t.split(':').map(s => s.trim());
+            let el = document.getElementById(id.toLowerCase());
+
+            // Se il timer non esiste, lo creo!
+            if (!el) {
+                const timerHtml = `
+                    <div class="timer-tile">
+                        <div class="timer-info">
+                            <svg class="tile-icon" style="width:24px;height:24px;margin:0 15px 0 0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <div class="timer-label">${id.replace('T', 'Ciclo ')}</div>
+                        </div>
+                        <input type="checkbox" id="${id.toLowerCase()}" class="ios-switch" onchange="toggleTimer('${id}', this.checked)">
+                    </div>`;
+                container.insertAdjacentHTML('beforeend', timerHtml);
+                el = document.getElementById(id.toLowerCase());
+            }
+            // Aggiorno lo stato dello switch
+            el.checked = (status === 'ON');
+        });
+    }
+
+    function sendCmd(c) { if(client.connected) client.publish('antizanzare/comandi', c); }
+    function toggleTimer(id, en) { if(client.connected) client.publish('antizanzare/set_timer', id + "_" + (en ? "ON" : "OFF")); }
     function showTab(t, b) {
         document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
         document.querySelectorAll('.navbtn').forEach(x => x.classList.remove('active'));
         document.getElementById(t).classList.add('active');
         document.getElementById(b).classList.add('active');
-        window.scrollTo(0, 0);
     }
 </script>
 </body>
