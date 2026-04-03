@@ -9,209 +9,241 @@
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <style>
         :root {
-            --bg: #f0f0f3;
+            --bg: #f2f2f7;
             --white: #ffffff;
-            --shadow-light: -8px -8px 15px rgba(255,255,255,1);
-            --shadow-dark: 8px 8px 15px rgba(0,0,0,0.1);
             --red: #ff3b30;
             --green: #34c759;
             --orange: #ff9500;
+            --text-sec: #8e8e93;
+            --shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
 
         body {
             font-family: -apple-system, system-ui, sans-serif;
             background-color: var(--bg);
             margin: 0;
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            color: #1c1c1e;
             padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom) 20px;
             box-sizing: border-box;
+            overflow: hidden;
         }
 
-        /* Header */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 5px;
-        }
-        .header h1 { font-size: 26px; font-weight: 900; margin: 0; letter-spacing: -1px; }
+        /* Navigazione Tab */
+        .tab-content { display: none; flex-direction: column; height: 100%; flex: 1; }
+        .tab-content.active { display: flex; }
 
-        /* Card Stato Neumorfica */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; }
+        .header h1 { font-size: 26px; font-weight: 800; margin: 0; }
+
+        /* Card Stato */
         .status-card {
-            background: var(--bg);
+            background: var(--white);
             padding: 20px;
-            border-radius: 25px;
-            box-shadow: var(--shadow-light), var(--shadow-dark);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
             display: flex;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
-        .dot { width: 12px; height: 12px; background: var(--red); border-radius: 50%; margin-right: 15px; }
-        .dot.online { background: var(--green); box-shadow: 0 0 10px var(--green); }
 
-        /* Area Comandi - Spaziatura Uniforme */
-        .controls-area {
+        .main-controls {
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* Distribuisce i blocchi verticalmente */
-            margin-bottom: 30px;
-        }
-
-        .section-label {
-            font-size: 13px;
-            font-weight: 700;
-            color: #8e8e93;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 15px;
+            justify-content: space-between;
+            margin-bottom: 80px; /* Spazio per la nav bar */
         }
 
         .grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
-            flex: 0.8; /* I due tasti occupano la maggior parte dello spazio */
+            flex: 0.8;
         }
 
-        /* Tasti Neumorfici */
+        /* Pulsanti stile Foto */
         .tile {
-            background: var(--bg);
-            border-radius: 30px;
-            border: 2px solid transparent;
-            box-shadow: var(--shadow-light), var(--shadow-dark);
+            background: var(--white);
+            border-radius: 32px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            box-shadow: var(--shadow);
+            border: 3px solid transparent;
             transition: all 0.2s;
             cursor: pointer;
+            text-align: center;
         }
-        .tile:active { box-shadow: inset 5px 5px 10px rgba(0,0,0,0.1), inset -5px -5px 10px #fff; transform: scale(0.98); }
-        
-        /* Stile Attivo (Arancione con bordo verde come da foto) */
-        .tile.active {
-            background: var(--orange);
-            border-color: var(--green);
-            color: white;
-        }
-
-        .tile svg { width: 70px; height: 70px; margin-bottom: 15px; }
+        .tile.active { background: var(--orange); border-color: var(--green); color: white; }
+        .tile svg { width: 80px; height: 80px; margin-bottom: 10px; }
         .tile span { font-weight: 700; font-size: 16px; }
 
-        /* Tasto Stop Emergenza */
+        /* Stop Emergenza */
         .stop-btn {
             background: var(--red);
-            height: 80px;
-            border-radius: 25px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            height: 75px;
+            border-radius: 24px;
             color: white;
             font-weight: 800;
             font-size: 18px;
             border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             box-shadow: 0 10px 20px rgba(255,59,48,0.3);
             margin-top: 20px;
         }
 
-        /* Bottom Nav */
-        .nav {
+        /* Timer List */
+        .timer-list { overflow-y: auto; flex: 1; padding-bottom: 100px; }
+        .timer-item {
+            background: var(--white);
+            margin-bottom: 15px;
+            padding: 20px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+
+        /* Bottom Navbar */
+        .nav-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 85px;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(15px);
             display: flex;
             justify-content: space-around;
-            padding: 15px 0;
-            border-top: 1px solid rgba(0,0,0,0.05);
+            padding-bottom: env(safe-area-inset-bottom);
+            border-top: 0.5px solid #d1d1d6;
         }
-        .nav-item { text-align: center; color: #8e8e93; font-weight: 700; font-size: 11px; }
-        .nav-item.active { color: #1c1c1e; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); font-weight: 700; font-size: 11px; flex: 1; }
+        .nav-item.active { color: #000; }
+
+        /* Switch iOS */
+        .switch { width: 50px; height: 30px; appearance: none; background: #d1d1d6; border-radius: 15px; position: relative; cursor: pointer; transition: .3s; }
+        .switch:checked { background: var(--green); }
+        .switch::before { content: ''; position: absolute; width: 26px; height: 26px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: .3s; }
+        .switch:checked::before { transform: translateX(20px); }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>ANTIZANZARE</h1>
-        <div id="clock" style="font-weight: 700; color: #8e8e93;">15:35</div>
-    </div>
-
-    <div class="status-card">
-        <div id="status-dot" class="dot"></div>
-        <div style="flex: 1;">
-            <div id="status-text" style="font-weight: 800; font-size: 18px;">Disconnesso</div>
-            <div style="font-size: 13px; color: #8e8e93;">Cloud HiveMQ</div>
+    <div id="tab-home" class="tab-content active">
+        <div class="header">
+            <h1>ANTIZANZARE</h1>
+            <div id="clock" style="font-weight: 600; color: var(--text-sec);">15:35</div>
         </div>
-        <div style="width: 40px; height: 40px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-dark);">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="2.5"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
-        </div>
-    </div>
 
-    <div class="section-label">Controllo Manuale</div>
-
-    <div class="controls-area">
-        <div class="grid">
-            <div id="btn-rep" class="tile" onclick="sendCmd('START_REP')">
-                <svg viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" stroke="#ff3b30" stroke-width="2.5"/>
-                    <line x1="5" y1="19" x2="19" y2="5" stroke="#ff3b30" stroke-width="2.5"/>
-                    <path d="M8 12h8M12 9v6" stroke="#000" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-                <span>Repellente</span>
+        <div class="status-card">
+            <div id="status-dot" style="width:12px; height:12px; background:var(--red); border-radius:50%; margin-right:15px;"></div>
+            <div style="flex:1">
+                <div id="status-title" style="font-weight:700; font-size:18px;">Sistema Offline</div>
+                <div id="status-desc" style="font-size:13px; color:var(--text-sec);">In attesa di connessione...</div>
             </div>
-
-            <div id="btn-ins" class="tile" onclick="sendCmd('START_INS')">
-                <svg viewBox="0 0 24 24" fill="#000">
-                    <path d="M12 2C8.68 2 6 4.68 6 8c0 2.42 1.44 4.49 3.5 5.4V16c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-2.6c2.06-.91 3.5-2.98 3.5-5.4 0-3.32-2.68-6-6-6zm-2.5 7a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm5 0a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z"/>
-                    <path d="M4 21l3-3M20 21l-3-3M4 14l3 3M20 14l-3 3" stroke="#000" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <span>Insetticida</span>
+            <div onclick="toggleAllTimers()" style="cursor:pointer; width:40px; height:40px; display:flex; align-items:center; justify-content:center; background:#f2f2f7; border-radius:50%">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="2.5"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
             </div>
         </div>
 
-        <button class="stop-btn" onclick="sendCmd('STOP')">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" style="margin-right:10px;"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6m0-6l-6 6"/></svg>
-            DISATTIVA SISTEMA
-        </button>
+        <div style="font-size: 12px; font-weight: 800; color: var(--text-sec); text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px;">Controllo Manuale</div>
+
+        <div class="main-controls">
+            <div class="grid">
+                <div id="btn-rep" class="tile" onclick="sendCmd('START_REP')">
+                    <svg viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="38" stroke="#ff3b30" stroke-width="7" fill="none"/>
+                        <line x1="25" y1="75" x2="75" y2="25" stroke="#ff3b30" stroke-width="7"/>
+                        <path d="M40 55 Q50 45 60 55 M45 50 Q50 35 55 50" stroke="#000" stroke-width="3" fill="none"/>
+                        <ellipse cx="50" cy="55" rx="10" ry="5" fill="#000" transform="rotate(-45 50 55)"/>
+                    </svg>
+                    <span>Repellente</span>
+                </div>
+                <div id="btn-ins" class="tile" onclick="sendCmd('START_INS')">
+                    <svg viewBox="0 0 100 100" fill="#000">
+                        <path d="M50 20 C35 20 30 35 30 50 C30 65 40 75 45 75 L55 75 C60 75 70 65 70 50 C70 35 65 20 50 20 Z"/>
+                        <circle cx="42" cy="48" r="6" fill="#fff"/><circle cx="58" cy="48" r="6" fill="#fff"/>
+                        <rect x="44" y="68" width="12" height="5" rx="1" fill="#fff"/>
+                        <path d="M25 85 L75 35 M75 85 L25 35" stroke="#000" stroke-width="6" stroke-linecap="round"/>
+                    </svg>
+                    <span>Insetticida</span>
+                </div>
+            </div>
+            <button class="stop-btn" onclick="sendCmd('STOP')">STOP EMERGENZA</button>
+        </div>
     </div>
 
-    <div class="nav">
-        <div class="nav-item active">
+    <div id="tab-timer" class="tab-content">
+        <div class="header"><h1>PROGRAMMA</h1></div>
+        <div id="timer-container" class="timer-list">
+            <p style="text-align:center; color:gray; margin-top:50px;">Caricamento timer...</p>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active" id="nav-home" onclick="showTab('home')">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
             <div>HOME</div>
         </div>
-        <div class="nav-item">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <div class="nav-item" id="nav-timer" onclick="showTab('timer')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
             <div>TIMER</div>
         </div>
     </div>
 
     <script>
-        // Logica MQTT mantenuta intatta
         const client = mqtt.connect('wss://970da8e9d08943a6a85210f5ad0c0a35.s1.eu.hivemq.cloud:8884/mqtt', {
             clientId: 'PWA_' + Math.random().toString(16).substr(2, 4),
             username: 'Antizanzare', password: 'Antizanzare26!'
         });
 
         client.on('connect', () => {
-            document.getElementById('status-dot').classList.add('online');
-            document.getElementById('status-text').innerText = "Sistema Online";
-            client.subscribe('antizanzare/stato');
+            document.getElementById('status-dot').style.background = "var(--green)";
+            document.getElementById('status-title').innerText = "Sistema Online";
+            client.subscribe(['antizanzare/stato', 'antizanzare/timer_status']);
         });
 
         client.on('message', (topic, message) => {
             const msg = message.toString();
-            const btnRep = document.getElementById('btn-rep');
-            const btnIns = document.getElementById('btn-ins');
-            
-            btnRep.classList.remove('active');
-            btnIns.classList.remove('active');
-
-            if(msg.includes("RUNNING_REP")) btnRep.classList.add('active');
-            if(msg.includes("RUNNING_INS")) btnIns.classList.add('active');
+            if(topic === 'antizanzare/stato') {
+                document.getElementById('status-desc').innerText = msg;
+                document.getElementById('btn-rep').classList.toggle('active', msg.includes("RUNNING_REP"));
+                document.getElementById('btn-ins').classList.toggle('active', msg.includes("RUNNING_INS"));
+            }
+            if(topic === 'antizanzare/timer_status') updateTimerList(msg);
         });
 
+        function updateTimerList(payload) {
+            const container = document.getElementById('timer-container');
+            container.innerHTML = "";
+            if(payload === "EMPTY") return container.innerHTML = "<p>Nessun timer</p>";
+            payload.split(',').forEach((t, i) => {
+                const p = t.split(':'); // R:10:30:ON
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="timer-item">
+                        <div>
+                            <div style="font-weight:800; font-size:20px;">${p[1]}:${p[2]}</div>
+                            <div style="font-size:12px; color:var(--text-sec); font-weight:700;">${p[0]=='R'?'REPELLENTE':'INSETTICIDA'}</div>
+                        </div>
+                        <input type="checkbox" class="switch" ${p[3]=='ON'?'checked':''} onchange="sendCmd('TOGGLE_${i}')">
+                    </div>
+                `);
+            });
+        }
+
+        function showTab(tab) {
+            document.querySelectorAll('.tab-content, .nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-'+tab).classList.add('active');
+            document.getElementById('nav-'+tab).classList.add('active');
+        }
+
         function sendCmd(c) { client.publish('antizanzare/comandi', c); }
+        function toggleAllTimers() { sendCmd('ALL_OFF'); } // Semplificato per l'esempio
 
         setInterval(() => {
             const n = new Date();
