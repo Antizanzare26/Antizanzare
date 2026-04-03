@@ -23,67 +23,88 @@
 
         body { font-family: -apple-system, sans-serif; background: var(--bg-neumorphic); margin: 0; padding-top: env(safe-area-inset-top); user-select: none; }
         
-        /* Glassmorphism Bars */
-        .topbar, .bottomnav { background: rgba(224, 224, 224, 0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); position: fixed; width: 100%; z-index: 100; border-bottom: 0.5px solid rgba(0,0,0,0.05); }
-        .topbar { top: 0; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
-        .bottomnav { bottom: 0; padding-bottom: calc(env(safe-area-inset-bottom) + 10px); padding-top: 15px; display: flex; border-top: 0.5px solid rgba(0,0,0,0.05); border-bottom: none; }
+        .topbar, .bottomnav { background: rgba(224, 224, 224, 0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); position: fixed; width: 100%; z-index: 100; }
+        .topbar { top: 0; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; border-bottom: 0.5px solid rgba(0,0,0,0.05); }
+        .bottomnav { bottom: 0; padding-bottom: calc(env(safe-area-inset-bottom) + 10px); padding-top: 15px; display: flex; border-top: 0.5px solid rgba(0,0,0,0.05); }
 
         .tab-content { display: none; padding: 80px 25px 130px 25px; animation: fadeIn 0.4s; }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Neumorphic UI */
-        .section-header { background: var(--bg-neumorphic); border-radius: 15px; padding: 12px 20px; box-shadow: var(--shadow-out); margin-bottom: 25px; display: inline-block; font-weight: 600; }
+        .section-header { background: var(--bg-neumorphic); border-radius: 12px; padding: 10px 18px; box-shadow: var(--shadow-out); margin-bottom: 20px; font-weight: 700; font-size: 14px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+        
         .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
         
-        .tile { background: var(--bg-neumorphic); border-radius: 25px; padding: 25px; box-shadow: var(--shadow-out); transition: 0.2s; border: none; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; }
+        .tile { background: var(--bg-neumorphic); border-radius: 25px; padding: 25px; box-shadow: var(--shadow-out); transition: 0.2s; border: none; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; width: 100%; }
         .tile:active { box-shadow: var(--shadow-in); transform: scale(0.98); }
-        .tile-icon { width: 35px; height: 35px; margin-bottom: 12px; color: var(--text-secondary); }
-        .tile-label { font-weight: 600; font-size: 15px; }
+        .tile-icon { width: 32px; height: 32px; margin-bottom: 10px; color: var(--text-secondary); }
+        .tile-label { font-weight: 700; font-size: 14px; color: var(--text-primary); }
 
-        .tile-stop { grid-column: span 2; background: var(--color-stop); color: white; flex-direction: row; justify-content: center; }
+        .tile-stop { grid-column: span 2; background: var(--color-stop); color: white; flex-direction: row; justify-content: center; height: 60px; }
         .tile-stop .tile-icon { margin: 0 15px 0 0; color: white; }
+        .tile-stop .tile-label { color: white; }
 
         .tile-active { background: var(--color-green); color: white; animation: pulse 2s infinite; }
-        .tile-active .tile-icon { color: white; }
+        .tile-active .tile-icon, .tile-active .tile-label { color: white; }
         @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(52,199,89,0.4); } 70% { box-shadow: 0 0 0 15px rgba(52,199,89,0); } }
 
-        /* Timer Styles (Dynamic) */
-        .timer-list { display: flex; flex-direction: column; gap: 15px; }
-        .timer-tile { background: var(--bg-neumorphic); border-radius: 20px; padding: 18px 25px; box-shadow: var(--shadow-out); display: flex; justify-content: space-between; align-items: center; animation: slideIn 0.3s ease-out; }
-        @keyframes slideIn { from { transform: translateX(-10px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        /* Connection Card */
+        .status-card { background: var(--bg-neumorphic); border-radius: 25px; padding: 20px; box-shadow: var(--shadow-out); margin-bottom: 25px; display: flex; align-items: center; gap: 15px; }
+        .status-indicator { width: 12px; height: 12px; border-radius: 50%; background: var(--color-red); box-shadow: 0 0 8px rgba(255,59,48,0.3); }
+        .status-text { flex-grow: 1; }
+        .status-title { font-weight: 800; font-size: 16px; margin-bottom: 2px; }
+        .status-desc { font-size: 12px; color: var(--text-secondary); }
 
-        /* Switch iOS */
+        /* Timer Styles */
+        .timer-list { display: flex; flex-direction: column; gap: 15px; }
+        .timer-tile { background: var(--bg-neumorphic); border-radius: 20px; padding: 18px 25px; box-shadow: var(--shadow-out); display: flex; justify-content: space-between; align-items: center; }
+
+        /* iOS Switch */
         .ios-switch { appearance: none; width: 51px; height: 31px; background: #bdbdbd; border-radius: 100px; position: relative; cursor: pointer; transition: 0.3s; }
         .ios-switch:checked { background: var(--color-green); }
-        .ios-switch::before { content: ''; position: absolute; width: 27px; height: 27px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s; box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
+        .ios-switch::before { content: ''; position: absolute; width: 27px; height: 27px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s; }
         .ios-switch:checked::before { transform: translateX(20px); }
 
-        .navbtn { flex: 1; text-align: center; color: #a0a0a0; display: flex; flex-direction: column; align-items: center; }
+        .navbtn { flex: 1; text-align: center; color: #a0a0a0; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
         .navbtn.active { color: var(--text-primary); }
         .nav-icon { width: 24px; height: 24px; margin-bottom: 4px; }
-        .navtext { font-size: 10px; font-weight: 700; }
-        
-        #status-panel { background: var(--bg-neumorphic); border-radius: 25px; padding: 20px; box-shadow: var(--shadow-in); margin-top: 30px; text-align: center; }
-        .conn-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--color-red); }
+        .navtext { font-size: 10px; font-weight: 800; }
     </style>
 </head>
 <body>
 
 <div class="topbar">
-    <div style="font-weight:700; font-size:19px;">Antizanzare</div>
-    <div id="dot" class="conn-dot"></div>
+    <div style="font-weight:800; font-size:20px; letter-spacing:-0.5px;">ANTIZANZARE</div>
+    <div style="font-size: 12px; font-weight: 700; color: var(--text-secondary);" id="time-now">--:--</div>
 </div>
 
 <div id="home" class="tab-content active">
-    <div class="section-header">Comandi Rapidi</div>
+    <div class="status-card">
+        <div id="conn-dot" class="status-indicator"></div>
+        <div class="status-text">
+            <div id="conn-status-title" class="status-title">Disconnesso</div>
+            <div id="conn-status-desc" class="status-desc">Verifica la connessione dell'ESP32</div>
+        </div>
+        <button id="btn-power" onclick="sendCmd('STOP')" style="border:none; background:var(--bg-neumorphic); box-shadow:var(--shadow-out); border-radius:50%; width:45px; height:45px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+        </button>
+    </div>
+
+    <div class="section-header">Controllo Manuale</div>
     <div class="grid-container">
         <button id="tile-rep" class="tile" onclick="sendCmd('START_REP')">
-            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v10m0 0l-4-4m4 4l4-4M5 12h14c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2v-6c0-1.1.9-2 2-2z"/></svg>
+            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2Z" fill="#ff3b30" fill-opacity="0.2" stroke="#ff3b30"/>
+                <path d="M12 5V19M5 12H19M16.9497 16.9497L7.05025 7.05025M7.05025 16.9497L16.9497 7.05025" stroke="white"/>
+                <circle cx="12" cy="12" r="10" stroke="#ff3b30" stroke-width="2.5"/>
+            </svg>
             <div class="tile-label">Repellente</div>
         </button>
         <button id="tile-ins" class="tile" onclick="sendCmd('START_INS')">
-            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12m0 0l4 4m-4-4l-4 4M19 12H5c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h14c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2z"/></svg>
+            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2">
+                <path d="M12 4V4.01M16 6.5C18.5 7.5 20 9.5 20 12C20 14.5 18.5 16.5 16 17.5V17.5M8 6.5C5.5 7.5 4 9.5 4 12C4 14.5 5.5 16.5 8 17.5V17.5" stroke-width="1.5"/>
+                <path d="M12 8V16M15 12H9" stroke-width="2.5"/>
+            </svg>            
             <div class="tile-label">Insetticida</div>
         </button>
         <button class="tile tile-stop" onclick="sendCmd('STOP')">
@@ -91,26 +112,12 @@
             <div class="tile-label">STOP EMERGENZA</div>
         </button>
     </div>
-    <div id="status-panel">
-        <div style="font-size:14px; color:var(--text-secondary)" id="status-label">In attesa...</div>
-        <div id="cycle-info" style="font-weight:700; font-size:18px; color:var(--color-green); margin-top:5px;">--</div>
-    </div>
 </div>
 
 <div id="timer" class="tab-content">
-    <div class="section-header">Programmazione</div>
+    <div class="section-header">Programmazione Oraria</div>
     <div id="timer-container" class="timer-list">
-        <p id="timer-loading" style="text-align:center; color:#999; font-size:14px; margin-top:20px;">Ricezione cicli dall'ESP32...</p>
-    </div>
-</div>
-
-<div id="config" class="tab-content">
-    <div class="section-header">Test Hardware</div>
-    <div class="grid-container">
-        <button class="tile" onclick="sendCmd('TEST_PMAIN')"><div class="tile-label">Pompa Princ.</div></button>
-        <button class="tile" onclick="sendCmd('TEST_P1')"><div class="tile-label">Pompa Rep.</div></button>
-        <button class="tile" onclick="sendCmd('TEST_P2')"><div class="tile-label">Pompa Ins.</div></button>
-        <button class="tile" onclick="sendCmd('TEST_VAL')"><div class="tile-label">Valvola</div></button>
+        <p style="text-align:center; color:#999; font-size:14px; margin-top:20px;">Caricamento timer...</p>
     </div>
 </div>
 
@@ -123,10 +130,6 @@
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         <span class="navtext">TIMER</span>
     </div>
-    <div class="navbtn" id="b3" onclick="showTab('config','b3')">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <span class="navtext">TEST</span>
-    </div>
 </div>
 
 <script>
@@ -138,7 +141,9 @@
     });
 
     client.on('connect', () => {
-        document.getElementById('dot').style.background = "var(--color-green)";
+        document.getElementById('conn-dot').style.background = "var(--color-green)";
+        document.getElementById('conn-status-title').innerText = "Sistema Attivo";
+        document.getElementById('conn-status-desc').innerText = "Connesso al Cloud MQTT";
         client.subscribe(['antizanzare/stato', 'antizanzare/timer_status']);
     });
 
@@ -146,12 +151,18 @@
         const msg = message.toString();
         
         if (topic === 'antizanzare/stato') {
-            document.getElementById('status-label').innerText = "Sistema Online";
-            document.getElementById('cycle-info').innerText = msg;
+            const statusDesc = document.getElementById('conn-status-desc');
             const tR = document.getElementById('tile-rep'), tI = document.getElementById('tile-ins');
+            
             tR.classList.remove('tile-active'); tI.classList.remove('tile-active');
-            if (msg.includes("RUNNING_REP")) tR.classList.add('tile-active');
-            else if (msg.includes("RUNNING_INS")) tI.classList.add('tile-active');
+            
+            if (msg === "IDLE") {
+                statusDesc.innerText = "In attesa di comando";
+            } else {
+                statusDesc.innerText = "Ciclo in corso: " + msg;
+                if (msg.includes("RUNNING_REP")) tR.classList.add('tile-active');
+                if (msg.includes("RUNNING_INS")) tI.classList.add('tile-active');
+            }
         }
 
         if (topic === 'antizanzare/timer_status') {
@@ -161,58 +172,54 @@
 
     function updateTimerList(payload) {
         const container = document.getElementById('timer-container');
-        container.innerHTML = ""; // Svuota la lista per rigenerarla correttamente
+        container.innerHTML = "";
 
         if (payload === "EMPTY") {
-            container.innerHTML = '<p style="text-align:center; color:#999;">Nessun timer impostato</p>';
+            container.innerHTML = '<p style="text-align:center; color:#999;">Nessun timer configurato</p>';
             return;
         }
 
         const timers = payload.split(',');
-        
         timers.forEach((t, index) => {
-            const parts = t.split(':'); // Formato: R : HH : MM : STATUS
+            const parts = t.split(':');
             if (parts.length < 4) return;
 
             const tipo = parts[0] === 'R' ? 'Repellente' : 'Insetticida';
             const orario = parts[1] + ":" + parts[2];
             const attivo = parts[3] === "ON";
-            const iconColor = parts[0] === 'R' ? 'var(--color-green)' : 'var(--color-red)';
+            const indicator = parts[0] === 'R' ? '#34c759' : '#ff3b30';
 
             const timerHtml = `
                 <div class="timer-tile">
                     <div style="display:flex; align-items:center;">
-                        <div style="width:12px; height:12px; border-radius:50%; background:${iconColor}; margin-right:15px;"></div>
+                        <div style="width:4px; height:30px; border-radius:2px; background:${indicator}; margin-right:15px;"></div>
                         <div>
-                            <div style="font-weight:700; font-size:16px;">${orario}</div>
-                            <div style="font-size:12px; color:var(--text-secondary)">${tipo}</div>
+                            <div style="font-weight:800; font-size:18px;">${orario}</div>
+                            <div style="font-size:12px; color:var(--text-secondary); font-weight:600;">${tipo.toUpperCase()}</div>
                         </div>
                     </div>
-                    <input type="checkbox" class="ios-switch" ${attivo ? 'checked' : ''} 
-                           onchange="sendToggle(${index})">
+                    <input type="checkbox" class="ios-switch" ${attivo ? 'checked' : ''} onchange="sendToggle(${index})">
                 </div>`;
-            
             container.insertAdjacentHTML('beforeend', timerHtml);
         });
     }
 
-    function sendCmd(c) { 
-        if(client.connected) client.publish('antizanzare/comandi', c); 
-    }
-
-    // Questa funzione invia il comando corretto che l'ESP32 si aspetta
-    function sendToggle(index) { 
-        if(client.connected) {
-            client.publish('antizanzare/comandi', 'TOGGLE_' + index); 
-        }
-    }
-
+    function sendCmd(c) { if(client.connected) client.publish('antizanzare/comandi', c); }
+    function sendToggle(index) { if(client.connected) client.publish('antizanzare/comandi', 'TOGGLE_' + index); }
+    
     function showTab(t, b) {
         document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
         document.querySelectorAll('.navbtn').forEach(x => x.classList.remove('active'));
         document.getElementById(t).classList.add('active');
         document.getElementById(b).classList.add('active');
     }
+
+    // Orologio in alto a destra
+    setInterval(() => {
+        const now = new Date();
+        document.getElementById('time-now').innerText = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+    }, 1000);
 </script>
+
 </body>
 </html>
