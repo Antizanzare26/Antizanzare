@@ -6,92 +6,404 @@
     <title>Antizanzare Remote</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#34c759">
+    <meta name="theme-color" content="#ffffff">
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <style>
-        :root { --ios-green: #34c759; --ios-red: #ff3b30; --ios-blue: #007aff; --bg-gray: #f2f2f7; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg-gray); margin: 0; padding: 0; user-select: none; padding-top: env(safe-area-inset-top); }
-        .topbar { background: #fff; padding: 15px; text-align: center; font-weight: 600; font-size: 18px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .tab-content { display: none; padding: 10px 10px 100px 10px; }
-        .tab-content.active { display: block; }
-        .card { background: white; margin: 10px; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); text-align: center; }
-        .card h3 { margin: 0 0 15px 0; font-weight: 600; }
-        hr { border: 0; border-top: 1px solid #eee; margin: 15px 0; }
-        
-        /* Pulsanti */
-        button { width: 100%; padding: 16px; border: none; border-radius: 12px; margin: 8px 0; font-size: 17px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
-        button:active { transform: scale(0.97); opacity: 0.8; }
-        .btn-green { background: var(--ios-green); color: white; }
-        .btn-stop { background: #800000; color: white; font-size: 19px; }
-        .btn-test { background: var(--ios-blue); color: white; padding: 12px; font-size: 15px; }
+        :root {
+            --bg-main: #fcfcfc;
+            --bg-card: #ffffff;
+            --text-primary: #1d1d1f;
+            --text-secondary: #86868b;
+            --color-green: #34c759;
+            --color-red: #ff3b30;
+            --color-blue: #007aff;
+            --color-stop: #800000;
+            --border-color: #f2f2f2;
+        }
 
-        /* Animazione Ciclo Attivo */
-        @keyframes pulse-red { 0% { background-color: var(--ios-red); transform: scale(1); } 50% { background-color: #ff6b64; transform: scale(0.99); } 100% { background-color: var(--ios-red); transform: scale(1); } }
-        .active-cycle { animation: pulse-red 1.5s infinite ease-in-out !important; color: white; }
-        
-        /* Status */
-        #status-label { font-size: 15px; color: #8e8e93; margin-top: 15px; }
-        #cycle-info { font-size: 18px; font-weight: 600; color: var(--ios-green); margin-top: 8px; }
-        .conn-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--ios-red); margin-right: 7px; }
-        
-        /* Timer Rows & Switches */
-        .timer-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 5px; border-bottom: 1px solid #eee; }
-        .ios-switch { appearance: none; -webkit-appearance: none; width: 51px; height: 31px; background: #e9e9ea; border-radius: 100px; position: relative; cursor: pointer; transition: 0.25s; }
-        .ios-switch:checked { background: var(--ios-green); }
-        .ios-switch::before { content: ''; position: absolute; width: 27px; height: 27px; background: white; border-radius: 50%; top: 2px; left: 2px; box-shadow: 0 3px 8px rgba(0,0,0,0.15); transition: 0.25s; }
-        .ios-switch:checked::before { transform: translateX(20px); }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-main);
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            color: var(--text-primary);
+            padding-top: env(safe-area-inset-top);
+        }
 
-        /* Navbar */
-        .bottomnav { position: fixed; bottom: 0; width: 100%; display: flex; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(15px); border-top: 0.5px solid #ccc; padding-bottom: env(safe-area-inset-bottom); }
-        .navbtn { flex: 1; text-align: center; cursor: pointer; color: #8e8e93; padding: 12px 0; font-size: 22px; }
-        .navbtn span { display: block; font-size: 10px; font-weight: 600; margin-top: 3px; }
-        .navbtn.active { color: var(--ios-green); }
+        /* Topbar Minimale */
+        .topbar {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 0.5px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-title {
+            font-weight: 700;
+            font-size: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        .conn-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--color-red);
+            transition: background 0.3s;
+        }
+
+        /* Contenitore Tab */
+        .tab-content {
+            display: none;
+            padding: 20px;
+            padding-bottom: 120px; /* Spazio per navbar */
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Titoli di Sezione */
+        .section-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin: 0 0 20px 5px;
+            letter-spacing: 0.2px;
+        }
+
+        /* Layout Griglia Premium */
+        .tile-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        /* Piastrella Base */
+        .tile {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 20px;
+            border: 0.5px solid var(--border-color);
+            transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tile:active {
+            transform: scale(0.96);
+            background: #fafafa;
+        }
+
+        /* Icona nella piastrella */
+        .tile-icon {
+            width: 36px;
+            height: 36px;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+        }
+
+        /* Testo nella piastrella */
+        .tile-label {
+            font-weight: 600;
+            font-size: 17px;
+            letter-spacing: -0.2px;
+            line-height: 1.2;
+        }
+
+        /* Piastrella STOP (più grande) */
+        .tile-stop {
+            grid-column: span 2;
+            background: var(--color-stop);
+            color: white;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tile-stop .tile-icon {
+            margin: 0 15px 0 0;
+            color: white;
+        }
+
+        /* Stato Ciclo Attivo (Green Pulse) */
+        @keyframes pulse-active {
+            0% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(52, 199, 89, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); }
+        }
+
+        .tile-active {
+            background: var(--color-green);
+            color: white;
+            border-color: var(--color-green);
+            animation: pulse-active 2s infinite;
+        }
+
+        .tile-active .tile-icon {
+            color: white;
+        }
+
+        /* Piastrelle Timer (Layout Lista) */
+        .timer-tile {
+            grid-column: span 2;
+            flex-direction: row;
+            align-items: center;
+            padding: 15px 20px;
+            background: #fff;
+        }
+
+        .timer-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .timer-tile .tile-icon {
+            margin: 0 15px 0 0;
+            width: 24px;
+            height: 24px;
+        }
+
+        .timer-label {
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        /* Switch iOS Premium */
+        .ios-switch {
+            appearance: none;
+            width: 51px;
+            height: 31px;
+            background: #e9e9ea;
+            border-radius: 100px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+            border: none;
+            margin: 0;
+        }
+
+        .ios-switch:checked {
+            background: var(--color-green);
+        }
+
+        .ios-switch::before {
+            content: '';
+            position: absolute;
+            width: 27px;
+            height: 27px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        .ios-switch:checked::before {
+            transform: translateX(20px);
+        }
+
+        /* Status Label */
+        #status-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 20px;
+            border: 0.5px solid var(--border-color);
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        #status-label {
+            font-size: 15px;
+            color: var(--text-secondary);
+        }
+
+        #cycle-info {
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--color-green);
+            margin-top: 5px;
+            letter-spacing: -0.3px;
+        }
+
+        /* Navbar Inferiore Premium */
+        .bottomnav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(25px);
+            border-top: 0.5px solid var(--border-color);
+            padding-bottom: calc(env(safe-area-inset-bottom) + 5px);
+            padding-top: 10px;
+            display: flex;
+            z-index: 100;
+        }
+
+        .navbtn {
+            flex: 1;
+            text-align: center;
+            cursor: pointer;
+            color: #b5b5ba;
+            transition: color 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .nav-icon {
+            width: 26px;
+            height: 26px;
+            margin-bottom: 5px;
+        }
+
+        .navtext {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1px;
+        }
+
+        .navbtn.active {
+            color: var(--text-primary);
+        }
+
+        /* Stili per la pagina Info */
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 5px;
+            border-bottom: 0.5px solid var(--border-color);
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 15px;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 15px;
+            font-family: monospace;
+        }
+
+        /* Utility */
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<div class="topbar"><span id="dot" class="conn-dot"></span> ANTIZANZARE CLOUD</div>
-
-<div id="home" class="tab-content active">
-    <div class="card">
-        <h3>Comandi Manuali</h3>
-        <button id="btn-rep" class="btn-green" onclick="sendCmd('START_REP')">AVVIA REPELLENTE</button>
-        <button id="btn-ins" class="btn-green" onclick="sendCmd('START_INS')">AVVIA INSETTICIDA</button>
-        <button id="btn-stop" class="btn-stop" onclick="sendCmd('STOP')">STOP EMERGENZA</button>
-        <hr><div id="status-label">Stato: In attesa...</div>
-    </div>
+<div class="topbar">
+    <div class="topbar-title">Antizanzare</div>
+    <div id="dot" class="conn-dot"></div>
 </div>
 
-<div id="timer" class="tab-content">
-    <div class="card">
-        <h3>Timer Programmati</h3>
-        <p style="color: #666; font-size: 13px;">Sincronizzato con ESP32</p>
-        <div class="timer-row"><span>Ciclo Mattina (07:00)</span><input type="checkbox" id="t1" class="ios-switch" onchange="toggleTimer('T1', this.checked)"></div>
-        <div class="timer-row"><span>Ciclo Sera (19:00)</span><input type="checkbox" id="t2" class="ios-switch" onchange="toggleTimer('T2', this.checked)"></div>
-        <hr><p style="font-size: 13px; color: #8e8e93;">Attività Attuale:</p>
+<div id="home" class="tab-content active">
+    <div class="section-title">Comandi Rapidi</div>
+    <div class="tile-grid">
+        <div id="tile-rep" class="tile" onclick="sendCmd('START_REP')">
+            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v10m0 0l-4-4m4 4l4-4M5 12h14c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2v-6c0-1.1.9-2 2-2z"/></svg>
+            <div class="tile-label">Avvia<br>Repellente</div>
+        </div>
+        <div id="tile-ins" class="tile" onclick="sendCmd('START_INS')">
+            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12m0 0l4 4m-4-4l-4 4M19 12H5c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h14c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2z"/></svg>
+            <div class="tile-label">Avvia<br>Insetticida</div>
+        </div>
+        <div class="tile tile-stop" onclick="sendCmd('STOP')">
+            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M10 10l4 4m0-4l-4 4"/></svg>
+            <div class="tile-label">STOP EMERGENZA</div>
+        </div>
+    </div>
+
+    <div id="status-card">
+        <div id="status-label">Stato Connessione: In attesa...</div>
         <div id="cycle-info">--</div>
     </div>
 </div>
 
-<div id="config" class="tab-content">
-    <div class="card">
-        <h3>Test Attuatori</h3>
-        <button class="btn-test" onclick="sendCmd('TEST_P1')">TEST POMPA 1</button>
-        <button class="btn-test" onclick="sendCmd('TEST_P2')">TEST POMPA 2</button>
-        <button class="btn-test" onclick="sendCmd('TEST_VAL')">TEST ELETTROVALVOLA</button>
+<div id="timer" class="tab-content">
+    <div class="section-title">Programmazione Automatica</div>
+    <div class="tile-grid">
+        <div class="tile timer-tile">
+            <div class="timer-info">
+                <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <div class="timer-label">Ciclo Mattina (07:00)</div>
+            </div>
+            <input type="checkbox" id="t1" class="ios-switch" onchange="toggleTimer('T1', this.checked)">
+        </div>
+        <div class="tile timer-tile">
+            <div class="timer-info">
+                <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                <div class="timer-label">Ciclo Sera (19:00)</div>
+            </div>
+            <input type="checkbox" id="t2" class="ios-switch" onchange="toggleTimer('T2', this.checked)">
+        </div>
     </div>
-    <div class="card">
-        <h3>Info Connessione</h3>
-        <p style="font-size: 14px; text-align: left;"><b>Server:</b> <span id="conf-host">--</span></p>
-        <p style="font-size: 14px; text-align: left;"><b>User:</b> <span id="conf-user">--</span></p>
-        <hr><p style="font-size: 11px; color: #bbb;">V. 3.2 | MQTT via WSS</p>
+</div>
+
+<div id="config" class="tab-content">
+    <div class="section-title">Test Hardware Manuale</div>
+    <div class="tile-grid">
+        <div class="tile" onclick="sendCmd('TEST_PMAIN')">
+            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
+            <div class="tile-label">Test Principale</div>
+        </div>
+        <div class="tile" onclick="sendCmd('TEST_P1')">
+            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <div class="tile-label">Test Repellente</div>
+        </div>
+        <div class="tile" onclick="sendCmd('TEST_P2')">
+            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <div class="tile-label">Test Insetticida</div>
+        </div>
+        <div class="tile" onclick="sendCmd('TEST_VAL')">
+            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <div class="tile-label">Test Elettrovalvola</div>
+        </div>
+    </div>
+
+    <div class="section-title" style="margin-top: 30px;">Dettagli Sistema</div>
+    <div class="card" style="padding: 10px 20px;">
+        <div class="info-item"><div class="info-label">Server</div><div class="info-value" id="conf-host">--</div></div>
+        <div class="info-item"><div class="info-label">Utente</div><div class="info-value" id="conf-user">--</div></div>
+        <div class="info-item" style="border: none;"><div class="info-label">Versione</div><div class="info-value">Premium v4.0</div></div>
     </div>
 </div>
 
 <div class="bottomnav">
-    <div class="navbtn active" id="b1" onclick="showTab('home','b1')">🏠<span>HOME</span></div>
-    <div class="navbtn" id="b2" onclick="showTab('timer','b2')">⏰<span>TIMER</span></div>
-    <div class="navbtn" id="b3" onclick="showTab('config','b3')">⚙️<span>TEST</span></div>
+    <div class="navbtn active" id="b1" onclick="showTab('home','b1')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="navtext">COMANDI</span>
+    </div>
+    <div class="navbtn" id="b2" onclick="showTab('timer','b2')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span class="navtext">ORARI</span>
+    </div>
+    <div class="navbtn" id="b3" onclick="showTab('config','b3')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="navtext">GESTISCI</span>
+    </div>
 </div>
 
 <script>
@@ -99,44 +411,66 @@
     const mqtt_user = 'Antizanzare';
     const mqtt_pass = 'Antizanzare26!';
 
-    document.getElementById('conf-host').innerText = mqtt_url.split('/')[2];
+    // Configurazione Info Page
+    document.getElementById('conf-host').innerText = mqtt_url.split('/')[2].split('.')[0]; // Mostra solo ID breve
     document.getElementById('conf-user').innerText = mqtt_user;
 
-    const client = mqtt.connect(mqtt_url, { clientId: 'PWA_' + Math.random().toString(16).substr(2, 5), username: mqtt_user, password: mqtt_pass, keepalive: 60, reconnectPeriod: 2000 });
+    // Connessione MQTT Premium
+    const client = mqtt.connect(mqtt_url, { 
+        clientId: 'PWA_' + Math.random().toString(16).substr(2, 4), 
+        username: mqtt_user, 
+        password: mqtt_pass, 
+        keepalive: 60, 
+        reconnectPeriod: 1000 // Riconnessione rapida
+    });
 
     client.on('connect', () => {
-        document.getElementById('dot').style.background = "#34c759";
+        document.getElementById('dot').style.background = "var(--color-green)";
+        document.getElementById('status-label').innerText = "Sistema Online";
         client.subscribe(['antizanzare/stato', 'antizanzare/timer_status']);
     });
 
     client.on('message', (topic, message) => {
         const msg = message.toString().toUpperCase();
+        
         if (topic === 'antizanzare/stato') {
-            document.getElementById('status-label').innerText = "Stato: " + msg;
+            // Aggiorna testo stato
             document.getElementById('cycle-info').innerText = msg;
-            const bR = document.getElementById('btn-rep'), bI = document.getElementById('btn-ins');
-            bR.classList.remove('active-cycle'); bI.classList.remove('active-cycle');
-            if (msg.includes("REPELLENTE") && !msg.includes("STOP")) bR.classList.add('active-cycle');
-            else if (msg.includes("INSETTICIDA") && !msg.includes("STOP")) bI.classList.add('active-cycle');
+
+            // Gestione Feedback Visivo Piastrelle HOME
+            const tileRep = document.getElementById('tile-rep'), tileIns = document.getElementById('tile-ins');
+            
+            // Reset stati
+            tileRep.classList.remove('tile-active'); tileIns.classList.remove('tile-active');
+
+            // Attivazione piastrella corrispondente
+            if (msg.includes("REPELLENTE") && !msg.includes("STOP")) tileRep.classList.add('tile-active');
+            else if (msg.includes("INSETTICIDA") && !msg.includes("STOP")) tileIns.classList.add('tile-active');
         }
+
         if (topic === 'antizanzare/timer_status') {
             msg.split(',').forEach(s => {
-                const [id, val] = s.split(':');
-                const el = document.getElementById(id.toLowerCase().trim());
-                if (el) el.checked = (val.trim() === 'ON');
+                if(s.includes(':')) {
+                    const [id, val] = s.split(':');
+                    const el = document.getElementById(id.toLowerCase().trim());
+                    if (el) el.checked = (val.trim() === 'ON');
+                }
             });
         }
     });
 
-    client.on('close', () => { document.getElementById('dot').style.background = "#ff3b30"; });
+    client.on('close', () => { document.getElementById('dot').style.background = "var(--color-red)"; });
 
+    // Funzioni Utility
     function sendCmd(c) { if(client.connected) client.publish('antizanzare/comandi', c, { qos: 1 }); }
     function toggleTimer(id, en) { if(client.connected) client.publish('antizanzare/set_timer', id + "_" + (en ? "ON" : "OFF"), { qos: 1 }); }
+    
     function showTab(t, b) {
         document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
         document.querySelectorAll('.navbtn').forEach(x => x.classList.remove('active'));
         document.getElementById(t).classList.add('active');
         document.getElementById(b).classList.add('active');
+        window.scrollTo(0, 0); // Scroll in alto al cambio tab
     }
 </script>
 </body>
