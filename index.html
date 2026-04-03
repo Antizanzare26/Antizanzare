@@ -3,219 +3,264 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <title>ANTIZANZARE PRO</title>
+    <title>ANTIZANZARE Remote</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#f0f0f3">
+    <link rel="apple-touch-icon" href="icon-1.png">
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     
     <style>
         :root {
-            --bg: #f0f0f3;
-            --white: #ffffff;
-            --shadow-light: -8px -8px 15px rgba(255,255,255,1);
-            --shadow-dark: 8px 8px 15px rgba(0,0,0,0.1);
-            --red: #ff3b30;
-            --green: #34c759;
-            --orange: #ff9500;
+            --bg-neumorphic: #f0f0f3;
+            --text-primary: #1c1c1e;
+            --text-secondary: #8e8e93;
+            --color-green: #34c759;
+            --color-red: #ff3b30;
+            --color-orange: #ff9500;
+            --shadow-out: 8px 8px 16px #d1d1d6, -8px -8px 16px #ffffff;
+            --shadow-in: inset 8px 8px 16px #d1d1d6, inset -8px -8px 16px #ffffff;
         }
 
-        body {
-            font-family: -apple-system, system-ui, sans-serif;
-            background-color: var(--bg);
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            color: #1c1c1e;
-            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom) 20px;
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background: var(--bg-neumorphic); 
+            margin: 0; 
+            padding-top: env(safe-area-inset-top); 
+            user-select: none; 
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        .topbar, .bottomnav { 
+            background: rgba(240, 240, 243, 0.7); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px); 
+            position: fixed; 
+            width: 100%; 
+            z-index: 100; 
             box-sizing: border-box;
-            overflow: hidden;
         }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 5px;
-        }
-        .header h1 { font-size: 26px; font-weight: 900; margin: 0; letter-spacing: -1px; }
-
-        .status-card {
-            background: var(--bg);
-            padding: 20px;
-            border-radius: 25px;
-            box-shadow: var(--shadow-light), var(--shadow-dark);
-            display: flex;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-        .dot { width: 12px; height: 12px; background: var(--red); border-radius: 50%; margin-right: 15px; }
-        .dot.online { background: var(--green); box-shadow: 0 0 10px var(--green); }
-
-        .controls-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            margin-bottom: 30px;
+        .topbar { 
+            top: 0; 
+            padding: 65px 25px 20px 25px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 0.5px solid rgba(0,0,0,0.05); 
         }
 
-        .section-label {
-            font-size: 13px;
-            font-weight: 700;
-            color: #8e8e93;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 15px;
+        .bottomnav { 
+            bottom: 0; 
+            padding-bottom: calc(env(safe-area-inset-bottom) + 15px); 
+            padding-top: 15px; 
+            display: flex; 
+            border-top: 0.5px solid rgba(0,0,0,0.05); 
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            flex: 0.8;
-        }
+        .tab-content { display: none; padding: 160px 25px 160px 25px; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .tile {
-            background: var(--bg);
-            border-radius: 30px;
-            border: 2px solid transparent;
-            box-shadow: var(--shadow-light), var(--shadow-dark);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
+        .section-header { font-weight: 700; font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 25px; padding-left: 5px; }
+        
+        .grid-container { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 25px; 
+            margin-bottom: 25px; 
         }
         
-        /* Icone grandi e nitide */
-        .tile i { font-size: 65px; margin-bottom: 15px; transition: color 0.2s; }
-
-        .tile:active { 
-            box-shadow: inset 5px 5px 10px rgba(0,0,0,0.1), inset -5px -5px 10px #fff; 
-            transform: scale(0.96); 
+        .tile { 
+            background: var(--bg-neumorphic); 
+            border-radius: 35px; 
+            padding: 30px 15px; 
+            box-shadow: var(--shadow-out); 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+            border: 2px solid transparent; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            text-align: center; 
+            cursor: pointer; 
+            width: 100%; 
+            box-sizing: border-box; 
         }
         
-        .tile.active {
-            background: var(--green);
-            border-color: var(--green);
-            color: white;
-            box-shadow: inset 4px 4px 8px rgba(0,0,0,0.15);
-        }
+        .tile i { font-size: 65px; margin-bottom: 15px; color: var(--text-primary); transition: 0.2s; }
+        .tile:active { transform: scale(0.92); box-shadow: var(--shadow-in); }
+        .tile-label { font-weight: 700; font-size: 16px; color: var(--text-primary); }
 
-        .tile span { font-weight: 700; font-size: 16px; }
-
-        .stop-btn {
-            background: var(--red);
-            height: 80px;
-            border-radius: 25px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 800;
-            font-size: 18px;
-            border: none;
-            box-shadow: 0 10px 20px rgba(255,59,48,0.3);
-            margin-top: 20px;
+        /* Stato Attivo (Arancione con bordo verde come da foto) */
+        .tile.active { 
+            background: var(--color-green) !important; 
+            border-color: var(--color-green) !important; 
+            box-shadow: var(--shadow-in);
         }
+        .tile.active i, .tile.active .tile-label { color: white !important; }
 
-        .nav {
-            display: flex;
-            justify-content: space-around;
-            padding: 15px 0;
-            border-top: 1px solid rgba(0,0,0,0.05);
+        .tile-stop { 
+            grid-column: span 2; 
+            background: var(--color-red); 
+            color: white; 
+            flex-direction: row; 
+            justify-content: center; 
+            align-items: center; 
+            height: 75px; 
+            border: none; 
+            box-shadow: var(--shadow-out), 0 10px 20px rgba(255,59,48,0.3); 
+            margin-top: 5px;
         }
-        .nav-item { text-align: center; color: #8e8e93; font-weight: 700; font-size: 11px; }
-        .nav-item i { font-size: 22px; display: block; margin-bottom: 4px; }
-        .nav-item.active { color: #1c1c1e; }
+        .tile-stop i { font-size: 28px; margin-bottom: 0; margin-right: 15px; color: white; }
+        .tile-stop .tile-label { color: white; font-size: 17px; font-weight: 800; }
+
+        .status-card { background: var(--bg-neumorphic); border-radius: 28px; padding: 22px; box-shadow: var(--shadow-out); margin-bottom: 40px; display: flex; align-items: center; gap: 15px; }
+        .status-indicator { width: 10px; height: 10px; border-radius: 50%; background: var(--color-red); }
+        .status-indicator.online { background: var(--color-green); box-shadow: 0 0 10px var(--color-green); }
+
+        .timer-tile { background: var(--bg-neumorphic); border-radius: 22px; padding: 20px 25px; box-shadow: var(--shadow-out); display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        
+        .ios-switch { appearance: none; width: 51px; height: 31px; background: #bdbdbd; border-radius: 100px; position: relative; cursor: pointer; transition: 0.3s; }
+        .ios-switch:checked { background: var(--color-green); }
+        .ios-switch::before { content: ''; position: absolute; width: 27px; height: 27px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s; }
+        .ios-switch:checked::before { transform: translateX(20px); }
+
+        .navbtn { flex: 1; text-align: center; color: #a0a0a0; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .navbtn.active { color: var(--text-primary); }
+        .navbtn i { font-size: 24px; margin-bottom: 4px; }
+        .navtext { font-size: 11px; font-weight: 800; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>ANTIZANZARE</h1>
-        <div id="clock" style="font-weight: 700; color: #8e8e93;">15:35</div>
-    </div>
+<div class="topbar">
+    <div style="font-weight:900; font-size:26px; letter-spacing:-0.8px;">ANTIZANZARE</div>
+    <div style="font-size: 15px; font-weight: 700; color: var(--text-secondary);" id="time-now">00:00</div>
+</div>
 
+<div id="home" class="tab-content active">
     <div class="status-card">
-        <div id="status-dot" class="dot"></div>
-        <div style="flex: 1;">
-            <div id="status-text" style="font-weight: 800; font-size: 18px;">Disconnesso</div>
-            <div style="font-size: 13px; color: #8e8e93;">Cloud HiveMQ</div>
+        <div id="conn-dot" class="status-indicator"></div>
+        <div class="status-text">
+            <div id="conn-status-title" class="status-title">Disconnesso</div>
+            <div id="conn-status-desc" class="status-desc">In attesa dell'ESP32...</div>
         </div>
-        <div style="width: 40px; height: 40px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-dark);">
-            <i class="bi bi-power" style="color: #ff3b30; font-size: 20px;"></i>
-        </div>
-    </div>
-
-    <div class="section-label">Controllo Manuale</div>
-
-    <div class="controls-area">
-        <div class="grid">
-            <div id="btn-rep" class="tile" onclick="sendCmd('START_REP')">
-                <i class="bi bi-leaf"></i>
-                <span>Repellente</span>
-            </div>
-
-            <div id="btn-ins" class="tile" onclick="sendCmd('START_INS')">
-                <i class="bi bi-skull"></i>
-                <span>Insetticida</span>
-            </div>
-        </div>
-
-        <button class="stop-btn" onclick="sendCmd('STOP')">
-            <i class="bi bi-stop-circle-fill" style="margin-right: 12px; font-size: 24px;"></i>
-            STOP EMERGENZA
+        <button id="btn-power" style="border:none; background:none; cursor:pointer;" onclick="toggleAllTimers()">
+            <i class="bi bi-power" style="font-size: 28px; color: var(--color-red);"></i>
         </button>
     </div>
 
-    <div class="nav">
-        <div class="nav-item active">
-            <i class="bi bi-house-door-fill"></i>
-            <div>HOME</div>
-        </div>
-        <div class="nav-item">
-            <i class="bi bi-clock-history"></i>
-            <div>TIMER</div>
-        </div>
+    <div class="section-header">Controllo Manuale</div>
+    
+    <div class="grid-container">
+        <button id="tile-rep" class="tile" onclick="sendCmd('START_REP')">
+            <i class="bi bi-leaf"></i>
+            <div class="tile-label">Repellente</div>
+        </button>
+
+        <button id="tile-ins" class="tile" onclick="sendCmd('START_INS')">
+            <i class="bi bi-skull"></i>
+            <div class="tile-label">Insetticida</div>
+        </button>
     </div>
 
-    <script>
-        const client = mqtt.connect('wss://970da8e9d08943a6a85210f5ad0c0a35.s1.eu.hivemq.cloud:8884/mqtt', {
-            clientId: 'PWA_' + Math.random().toString(16).substr(2, 4),
-            username: 'Antizanzare', password: 'Antizanzare26!'
-        });
+    <button class="tile tile-stop" onclick="sendCmd('STOP')">
+        <i class="bi bi-stop-circle-fill"></i>
+        <div class="tile-label">STOP EMERGENZA</div>
+    </button>
+</div>
 
-        client.on('connect', () => {
-            document.getElementById('status-dot').classList.add('online');
-            document.getElementById('status-text').innerText = "Sistema Online";
-            client.subscribe('antizanzare/stato');
-        });
+<div id="timer" class="tab-content">
+    <div class="section-header">Programmazione</div>
+    <div id="timer-container">
+        <p style="text-align:center; color:#999; font-size:14px; margin-top:20px;">Caricamento timer...</p>
+    </div>
+</div>
 
-        client.on('message', (topic, message) => {
-            const msg = message.toString();
-            const btnRep = document.getElementById('btn-rep');
-            const btnIns = document.getElementById('btn-ins');
+<div class="bottomnav">
+    <div class="navbtn active" id="b1" onclick="showTab('home','b1')">
+        <i class="bi bi-house-door-fill"></i>
+        <span class="navtext">HOME</span>
+    </div>
+    <div class="navbtn" id="b2" onclick="showTab('timer','b2')">
+        <i class="bi bi-clock-history"></i>
+        <span class="navtext">TIMER</span>
+    </div>
+</div>
+
+<script>
+    const mqtt_url = 'wss://970da8e9d08943a6a85210f5ad0c0a35.s1.eu.hivemq.cloud:8884/mqtt';
+    const client = mqtt.connect(mqtt_url, { 
+        clientId: 'PWA_' + Math.random().toString(16).substr(2, 4), 
+        username: 'Antizanzare', password: 'Antizanzare26!' 
+    });
+
+    client.on('connect', () => {
+        document.getElementById('conn-dot').classList.add('online');
+        document.getElementById('conn-status-title').innerText = "Sistema Online";
+        client.subscribe(['antizanzare/stato', 'antizanzare/timer_status']);
+    });
+
+    client.on('message', (topic, message) => {
+        const msg = message.toString();
+        if (topic === 'antizanzare/stato') {
+            const desc = document.getElementById('conn-status-desc');
+            const tR = document.getElementById('tile-rep'), tI = document.getElementById('tile-ins');
+            tR.classList.remove('active'); tI.classList.remove('active');
             
-            btnRep.classList.remove('active');
-            btnIns.classList.remove('active');
+            if (msg === "IDLE") desc.innerText = "In attesa di comando";
+            else {
+                desc.innerText = "Attivo: " + msg;
+                if (msg.includes("RUNNING_REP")) tR.classList.add('active');
+                if (msg.includes("RUNNING_INS")) tI.classList.add('active');
+            }
+        }
+        if (topic === 'antizanzare/timer_status') updateTimerList(msg);
+    });
 
-            if(msg.includes("RUNNING_REP")) btnRep.classList.add('active');
-            if(msg.includes("RUNNING_INS")) btnIns.classList.add('active');
+    function updateTimerList(payload) {
+        const container = document.getElementById('timer-container');
+        container.innerHTML = "";
+        if (payload === "EMPTY") {
+            container.innerHTML = '<p style="text-align:center; color:#999; margin-top:40px;">Nessun timer configurato</p>';
+            return;
+        }
+        payload.split(',').forEach((t, index) => {
+            const p = t.split(':');
+            if (p.length < 4) return;
+            const accent = p[0] === 'R' ? 'var(--color-green)' : 'var(--color-red)';
+            container.insertAdjacentHTML('beforeend', `
+                <div class="timer-tile">
+                    <div style="display:flex; align-items:center;">
+                        <div style="width:5px; height:35px; border-radius:10px; background:${accent}; margin-right:15px;"></div>
+                        <div>
+                            <div style="font-weight:800; font-size:20px;">${p[1]}:${p[2]}</div>
+                            <div style="font-size:11px; color:var(--text-secondary); font-weight:800;">${p[0]=='R'?'REPELLENTE':'INSETTICIDA'}</div>
+                        </div>
+                    </div>
+                    <input type="checkbox" class="ios-switch" ${p[3]=='ON'?'checked':''} onchange="sendToggle(${index})">
+                </div>`);
         });
+    }
 
-        function sendCmd(c) { if(client.connected) client.publish('antizanzare/comandi', c); }
+    function sendCmd(c) { if(client.connected) client.publish('antizanzare/comandi', c); }
+    function sendToggle(i) { sendCmd('TOGGLE_' + i); }
+    function toggleAllTimers() { sendCmd('ALL_OFF'); }
+    
+    function showTab(t, b) {
+        document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.navbtn').forEach(x => x.classList.remove('active'));
+        document.getElementById(t).classList.add('active');
+        document.getElementById(b).classList.add('active');
+    }
 
-        setInterval(() => {
-            const n = new Date();
-            document.getElementById('clock').innerText = n.getHours().toString().padStart(2, '0') + ":" + n.getMinutes().toString().padStart(2, '0');
-        }, 1000);
-    </script>
+    setInterval(() => {
+        const n = new Date();
+        document.getElementById('time-now').innerText = n.getHours().toString().padStart(2, '0') + ":" + n.getMinutes().toString().padStart(2, '0');
+    }, 1000);
+</script>
 </body>
 </html>
