@@ -136,10 +136,10 @@
         .nav-icon { width: 26px; height: 26px; margin-bottom: 4px; }
         .navtext { font-size: 11px; font-weight: 800; }
 
-        .tile-icon { width: 80px; height: 80px; object-fit: contain; margin-bottom: 20px; pointer-events: none; }
+        .tile-icon { width: 80px; height: 80px; object-fit: contain; margin-bottom: 20px; pointer-events: none; mix-blend-mode: multiply; }
 
 /* Questa regola fa diventare l'immagine bianca quando il tasto è attivo */
-        .tile-active .tile-icon { filter: brightness(0) invert(1); transition: filter 0.2s ease; }
+        .tile-active .tile-icon { filter: brightness(0) invert(1); mix-blend-mode: normal; transition: filter 0.2s ease; }
     </style>
 </head>
 <body>
