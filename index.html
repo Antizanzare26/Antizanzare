@@ -238,12 +238,18 @@
         }
     };
 
+    
     client.on('connect', () => {
         document.getElementById('conn-dot').style.background = "var(--color-green)";
-        document.getElementById('conn-status-title').innerText = allTimersActive ? "Sistema Online" : "Timer Sospesi";
         document.getElementById('conn-status-desc').innerText = "Connesso al Cloud HiveMQ";
+    
+        // Chiamiamo updatePowerUI per impostare il titolo corretto (Online o Sospesi)
+        // in base a quello che abbiamo letto dal localStorage all'avvio
+        updatePowerUI();
+    
         client.subscribe(['antizanzare/stato', 'antizanzare/timer_status']);
     });
+  
 
     client.on('message', (topic, message) => {
         const msg = message.toString();
@@ -308,16 +314,31 @@
     }
 
     function toggleAllTimers() {
+        // Invertiamo lo stato attuale
         allTimersActive = !allTimersActive;
+        // Salviamo la preferenza
         localStorage.setItem('allTimersActive', allTimersActive);
-        sendCmd(allTimersActive ? "ALL_ON" : "ALL_OFF");
+        // INVIAMO IL COMANDO all'ESP32 (Fondamentale!)
+        const comando = allTimersActive ? "ALL_ON" : "ALL_OFF";
+        sendCmd(comando);
+        // Aggiorniamo l'interfaccia
         updatePowerUI();
+        console.log("Comando inviato: " + comando); // Per debug
     }
-
+    
     function updatePowerUI() {
         const title = document.getElementById('conn-status-title');
-        title.innerText = allTimersActive ? "Sistema Online" : "Timer Sospesi";
-        title.style.color = allTimersActive ? "var(--text-primary)" : "var(--color-red)";
+        const powerBtn = document.getElementById('btn-power');
+    
+        if (allTimersActive) {
+        title.innerText = "Sistema Online";
+        title.style.color = "var(--text-primary)";
+        powerBtn.style.boxShadow = "var(--shadow-out)"; // Ritorna normale
+        } else {
+        title.innerText = "Timer Sospesi";
+        title.style.color = "var(--color-red)";
+        powerBtn.style.boxShadow = "var(--shadow-in)"; // Sembra premuto
+        }
     }
 
     function checkSetupAccess() {
