@@ -61,17 +61,13 @@
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .section-header { font-weight: 700; font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 25px; padding-left: 5px; }
+        .section-header { font-weight: 700; font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 20px; padding-left: 5px; }
         
         .grid-container { 
             display: grid; 
             grid-template-columns: repeat(2, 1fr); 
             gap: 25px; 
             justify-items: center; 
-            margin: 0 auto; 
-            width: 100%; 
-            height: auto; 
-            justify-content: center; 
             margin-bottom: 25px; 
         }
         
@@ -88,16 +84,15 @@
             text-align: center; 
             cursor: pointer; 
             width: 100%; 
-            height: auto; 
             box-sizing: border-box; 
-            justify-content: space-between; 
         }
         .tile:active { transform: scale(0.92); box-shadow: var(--shadow-in); }
-        .tile-icon { width: 80px; height: 80px; margin-bottom: 20px; }
+        .tile-icon { width: 80px; height: 80px; margin-bottom: 20px; object-fit: contain; mix-blend-mode: multiply; }
         .tile-label { font-weight: 700; font-size: 16px; color: var(--text-primary); }
 
-        .tile-active { background: var(--color-green) !important; color: white !important; border-color: rgba(52,199,89,0.3) !important; }
+        .tile-active { background: var(--color-green) !important; color: white !important; }
         .tile-active .tile-label { color: white !important; }
+        .tile-active .tile-icon { filter: brightness(0) invert(1); mix-blend-mode: normal; }
 
         .tile-stop { 
             grid-column: span 2; 
@@ -109,37 +104,33 @@
             height: 70px; 
             border: none; 
             box-shadow: var(--shadow-out), 0 10px 20px rgba(255,59,48,0.3); 
-            margin-top: -5px; 
-            margin-bottom: 30px; 
         }
-        .tile-stop:active { transform: scale(0.95); box-shadow: var(--shadow-in); }
-        .tile-stop .tile-label { color: white; margin-left: 15px; font-size: 17px; font-weight: 800; }
 
-        .status-card { background: var(--bg-neumorphic); border-radius: 28px; padding: 22px; box-shadow: var(--shadow-out); margin-bottom: 40px; display: flex; align-items: center; gap: 15px; }
+        .status-card { background: var(--bg-neumorphic); border-radius: 28px; padding: 22px; box-shadow: var(--shadow-out); margin-bottom: 25px; display: flex; align-items: center; gap: 15px; }
         .status-indicator { width: 10px; height: 10px; border-radius: 50%; background: var(--color-red); }
         .status-text { flex-grow: 1; }
         .status-title { font-weight: 800; font-size: 19px; letter-spacing: -0.4px; }
         .status-desc { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
 
-        #btn-power { border: none; background: var(--bg-neumorphic); box-shadow: var(--shadow-out); border-radius: 50%; width: 50px; height: 50px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        #btn-power:active { box-shadow: var(--shadow-in); transform: scale(0.95); }
+        /* Nuovo Box Ultimo Ciclo */
+        .info-box { background: var(--bg-neumorphic); border-radius: 20px; padding: 15px; box-shadow: var(--shadow-in); margin-bottom: 35px; font-size: 13px; color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.5); }
 
-        .timer-tile { background: var(--bg-neumorphic); border-radius: 22px; padding: 20px 25px; box-shadow: var(--shadow-out); display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.5); }
+        #btn-power { border: none; background: var(--bg-neumorphic); box-shadow: var(--shadow-out); border-radius: 50%; width: 50px; height: 50px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        
+        .timer-tile { background: var(--bg-neumorphic); border-radius: 22px; padding: 20px 25px; box-shadow: var(--shadow-out); display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         
         .ios-switch { appearance: none; width: 51px; height: 31px; background: #bdbdbd; border-radius: 100px; position: relative; cursor: pointer; transition: 0.3s; }
         .ios-switch:checked { background: var(--color-green); }
         .ios-switch::before { content: ''; position: absolute; width: 27px; height: 27px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s; }
         .ios-switch:checked::before { transform: translateX(20px); }
 
-        .navbtn { flex: 1; text-align: center; color: #a0a0a0; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.2s; }
+        .navbtn { flex: 1; text-align: center; color: #a0a0a0; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
         .navbtn.active { color: var(--text-primary); }
         .nav-icon { width: 26px; height: 26px; margin-bottom: 4px; }
         .navtext { font-size: 11px; font-weight: 800; }
-
-        .tile-icon { width: 80px; height: 80px; object-fit: contain; margin-bottom: 20px; pointer-events: none; mix-blend-mode: multiply; }
-
-/* Questa regola fa diventare l'immagine bianca quando il tasto è attivo */
-        .tile-active .tile-icon { filter: brightness(0) invert(1); mix-blend-mode: normal; transition: filter 0.2s ease; }
+        
+        /* Stile Setup */
+        .setup-item { background: white; padding: 20px; border-radius: 20px; margin-bottom: 15px; box-shadow: var(--shadow-out); }
     </style>
 </head>
 <body>
@@ -149,6 +140,7 @@
     <div style="font-size: 15px; font-weight: 700; color: var(--text-secondary);" id="time-now">00:00</div>
 </div>
 
+<!-- TAB HOME -->
 <div id="home" class="tab-content active">
     <div class="status-card">
         <div id="conn-dot" class="status-indicator"></div>
@@ -161,30 +153,31 @@
         </button>
     </div>
 
+    <!-- Info Ultimo Ciclo -->
+    <div class="info-box" id="last-cycle-box">
+        <b>Ultimo ciclo:</b> <span id="last-cycle-name">Nessuno</span> alle <span id="last-cycle-time">--:--</span>
+    </div>
+
     <div class="section-header">Controllo Manuale</div>
     
     <div class="grid-container">
-    <button id="tile-rep" class="tile" onclick="sendCmd('START_REP')">
-        <img src="foglia.png" class="tile-icon" alt="Repellente">
-        <div class="tile-label">Repellente</div>
-    </button>
-
-    <button id="tile-ins" class="tile" onclick="sendCmd('START_INS')">
-        <img src="teschio.png" class="tile-icon" alt="Insetticida">
-        <div class="tile-label">Insetticida</div>
-    </button>
-</div>
+        <button id="tile-rep" class="tile" onclick="sendCmd('START_REP')">
+            <img src="foglia.png" class="tile-icon" alt="Repellente">
+            <div class="tile-label">Repellente</div>
+        </button>
+        <button id="tile-ins" class="tile" onclick="sendCmd('START_INS')">
+            <img src="teschio.png" class="tile-icon" alt="Insetticida">
+            <div class="tile-label">Insetticida</div>
+        </button>
+    </div>
 
     <button class="tile tile-stop" onclick="sendCmd('STOP')">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
-            <circle cx="12" cy="12" r="9"/>
-            <path d="M9 9l6 6m0-6l-6 6"/>
-        </svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6m0-6l-6 6"/></svg>
         <div class="tile-label">STOP EMERGENZA</div>
     </button>
-
 </div>
 
+<!-- TAB TIMER -->
 <div id="timer" class="tab-content">
     <div class="section-header">Programmazione</div>
     <div id="timer-container" class="timer-list">
@@ -192,6 +185,19 @@
     </div>
 </div>
 
+<!-- TAB SETUP (Protetta) -->
+<div id="setup" class="tab-content">
+    <div class="section-header">Impostazioni Sistema</div>
+    <div class="setup-item">
+        <p><b>Configurazione MQTT</b></p>
+        <p style="font-size:12px; color:gray">Server: HiveMQ Cloud<br>Status: Protetto</p>
+    </div>
+    <button class="tile" onclick="location.reload()" style="height:60px; flex-direction:row; justify-content:center">
+        <div class="tile-label">Riavvia App</div>
+    </button>
+</div>
+
+<!-- NAVIGAZIONE -->
 <div class="bottomnav">
     <div class="navbtn active" id="b1" onclick="showTab('home','b1')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -200,6 +206,10 @@
     <div class="navbtn" id="b2" onclick="showTab('timer','b2')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         <span class="navtext">TIMER</span>
+    </div>
+    <div class="navbtn" id="b3" onclick="checkSetupAccess()">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="navtext">SETUP</span>
     </div>
 </div>
 
@@ -212,9 +222,25 @@
 
     let allTimersActive = true;
 
+    // --- CARICAMENTO STATI SALVATI ---
+    window.onload = () => {
+        // Ripristina stato ON/OFF
+        const savedPower = localStorage.getItem('allTimersActive');
+        if (savedPower !== null) {
+            allTimersActive = (savedPower === 'true');
+            updatePowerUI();
+        }
+        // Ripristina info ultimo ciclo
+        const lastCycle = JSON.parse(localStorage.getItem('ultimoCiclo'));
+        if (lastCycle) {
+            document.getElementById('last-cycle-name').innerText = lastCycle.nome;
+            document.getElementById('last-cycle-time').innerText = lastCycle.ora;
+        }
+    };
+
     client.on('connect', () => {
         document.getElementById('conn-dot').style.background = "var(--color-green)";
-        document.getElementById('conn-status-title').innerText = "Sistema Online";
+        document.getElementById('conn-status-title').innerText = allTimersActive ? "Sistema Online" : "Timer Sospesi";
         document.getElementById('conn-status-desc').innerText = "Connesso al Cloud HiveMQ";
         client.subscribe(['antizanzare/stato', 'antizanzare/timer_status']);
     });
@@ -226,15 +252,30 @@
             const tR = document.getElementById('tile-rep'), tI = document.getElementById('tile-ins');
             tR.classList.remove('tile-active'); tI.classList.remove('tile-active');
             
-            if (msg === "IDLE") desc.innerText = "In attesa di comando";
-            else {
+            if (msg === "IDLE") {
+                desc.innerText = "In attesa di comando";
+            } else {
                 desc.innerText = "Attivo: " + msg;
-                if (msg.includes("RUNNING_REP")) tR.classList.add('tile-active');
-                if (msg.includes("RUNNING_INS")) tI.classList.add('tile-active');
+                if (msg.includes("RUNNING_REP")) {
+                    tR.classList.add('tile-active');
+                    saveLastCycle("Repellente");
+                }
+                if (msg.includes("RUNNING_INS")) {
+                    tI.classList.add('tile-active');
+                    saveLastCycle("Insetticida");
+                }
             }
         }
         if (topic === 'antizanzare/timer_status') updateTimerList(msg);
     });
+
+    function saveLastCycle(tipo) {
+        const ora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const dati = { nome: tipo, ora: ora };
+        localStorage.setItem('ultimoCiclo', JSON.stringify(dati));
+        document.getElementById('last-cycle-name').innerText = tipo;
+        document.getElementById('last-cycle-time').innerText = ora;
+    }
 
     function updateTimerList(payload) {
         const container = document.getElementById('timer-container');
@@ -268,9 +309,24 @@
 
     function toggleAllTimers() {
         allTimersActive = !allTimersActive;
+        localStorage.setItem('allTimersActive', allTimersActive);
         sendCmd(allTimersActive ? "ALL_ON" : "ALL_OFF");
-        document.getElementById('conn-status-title').innerText = allTimersActive ? "Sistema Online" : "Timer Sospesi";
-        document.getElementById('conn-status-title').style.color = allTimersActive ? "var(--text-primary)" : "var(--color-red)";
+        updatePowerUI();
+    }
+
+    function updatePowerUI() {
+        const title = document.getElementById('conn-status-title');
+        title.innerText = allTimersActive ? "Sistema Online" : "Timer Sospesi";
+        title.style.color = allTimersActive ? "var(--text-primary)" : "var(--color-red)";
+    }
+
+    function checkSetupAccess() {
+        const pass = prompt("Inserisci la password di amministrazione:");
+        if (pass === "1234") { // Sostituisci "1234" con la tua password
+            showTab('setup', 'b3');
+        } else if (pass !== null) {
+            alert("Password errata!");
+        }
     }
 
     function sendCmd(c) { if(client.connected) client.publish('antizanzare/comandi', c); }
