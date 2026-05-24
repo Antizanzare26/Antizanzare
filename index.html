@@ -112,7 +112,6 @@
         .status-title { font-weight: 800; font-size: 19px; letter-spacing: -0.4px; }
         .status-desc { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
 
-        /* Nuovo Box Ultimo Ciclo */
         .info-box { background: var(--bg-neumorphic); border-radius: 20px; padding: 15px; box-shadow: var(--shadow-in); margin-bottom: 35px; font-size: 13px; color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.5); }
 
         #btn-power { border: none; background: var(--bg-neumorphic); box-shadow: var(--shadow-out); border-radius: 50%; width: 50px; height: 50px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
@@ -129,8 +128,12 @@
         .nav-icon { width: 26px; height: 26px; margin-bottom: 4px; }
         .navtext { font-size: 11px; font-weight: 800; }
         
-        /* Stile Setup */
         .setup-item { background: white; padding: 20px; border-radius: 20px; margin-bottom: 15px; box-shadow: var(--shadow-out); }
+        .setup-input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #d1d1d6; background: #f2f2f7; font-size: 16px; font-weight: 600; box-sizing: border-box; text-align: center; }
+        
+        .btn-small-del { background: var(--color-red); color: white; border: none; border-radius: 8px; padding: 6px 12px; font-size: 11px; font-weight: 800; cursor: pointer; }
+        .setup-timer-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 0.5px solid #f2f2f7; }
+        .setup-timer-row:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
@@ -140,7 +143,6 @@
     <div style="font-size: 15px; font-weight: 700; color: var(--text-secondary);" id="time-now">00:00</div>
 </div>
 
-<!-- TAB HOME -->
 <div id="home" class="tab-content active">
     <div class="status-card">
         <div id="conn-dot" class="status-indicator"></div>
@@ -153,7 +155,6 @@
         </button>
     </div>
 
-    <!-- Info Ultimo Ciclo -->
     <div class="info-box" id="last-cycle-box">
         <b>Ultimo ciclo:</b> <span id="last-cycle-name">Nessuno</span> alle <span id="last-cycle-time">--:--</span>
     </div>
@@ -177,7 +178,6 @@
     </button>
 </div>
 
-<!-- TAB TIMER -->
 <div id="timer" class="tab-content">
     <div class="section-header">Programmazione</div>
     <div id="timer-container" class="timer-list">
@@ -185,9 +185,82 @@
     </div>
 </div>
 
-<!-- TAB SETUP (Protetta) -->
 <div id="setup" class="tab-content">
     <div class="section-header">Impostazioni Sistema</div>
+    
+    <div class="setup-item">
+        <p style="margin: 0 0 12px 0;"><b>Nuovo Timer Automatico</b></p>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <select id="new-timer-type" class="setup-input" style="flex: 1.2; font-size: 14px; height: 40px; padding:0 5px;">
+                <option value="R">Repellente</option>
+                <option value="I">Insetticida</option>
+            </select>
+            <input type="time" id="new-timer-time" class="setup-input" style="flex: 1; font-size:14px; height: 40px;" value="08:00">
+            <button class="btn-small-del" onclick="aggiungiNuovoTimer()" style="background: var(--color-green); height: 40px; font-size: 13px; border-radius: 10px; padding: 0 15px;">+ AGGIUNGI</button>
+        </div>
+    </div>
+
+    <div class="setup-item">
+        <p style="margin: 0 0 12px 0;"><b>Elimina Timer Esistenti</b></p>
+        <div id="setup-timer-list">
+            <p style="font-size: 12px; color: var(--text-secondary); text-align: center; margin: 5px 0;">Nessun timer da modificare</p>
+        </div>
+    </div>
+    
+    <div class="setup-item">
+        <p style="margin: 0 0 15px 0;"><b>Durate Repellente (Secondi)</b></p>
+        <div style="display: flex; gap: 12px;">
+            <div style="flex: 1; text-align: center;">
+                <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">MAIN</span>
+                <input type="number" id="setup-rm" value="60" class="setup-input">
+            </div>
+            <div style="flex: 1; text-align: center;">
+                <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">POMPA 1</span>
+                <input type="number" id="setup-rp1" value="60" class="setup-input">
+            </div>
+            <div style="flex: 1; text-align: center;">
+                <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">VALVOLA</span>
+                <input type="number" id="setup-rv" value="60" class="setup-input">
+            </div>
+        </div>
+    </div>
+
+    <div class="setup-item">
+        <p style="margin: 0 0 15px 0;"><b>Durate Insetticida (Secondi)</b></p>
+        <div style="display: flex; gap: 12px;">
+            <div style="flex: 1; text-align: center;">
+                <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">MAIN</span>
+                <input type="number" id="setup-im" value="60" class="setup-input">
+            </div>
+            <div style="flex: 1; text-align: center;">
+                <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">POMPA 2</span>
+                <input type="number" id="setup-ip2" value="60" class="setup-input">
+            </div>
+            <div style="flex: 1; text-align: center;">
+                <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">VALVOLA</span>
+                <input type="number" id="setup-iv" value="60" class="setup-input">
+            </div>
+        </div>
+    </div>
+
+    <div class="setup-item">
+        <p style="margin: 0 0 15px 0;"><b>Potenza Pompe PWM (0 - 255)</b></p>
+        <div style="display: flex; gap: 12px;">
+            <div style="flex: 1; text-align: center;">
+                <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">POTENZA P1</span>
+                <input type="number" id="setup-dp1" value="128" min="0" max="255" class="setup-input">
+            </div>
+            <div style="flex: 1; text-align: center;">
+                <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">POTENZA P2</span>
+                <input type="number" id="setup-dp2" value="128" min="0" max="255" class="setup-input">
+            </div>
+        </div>
+    </div>
+
+    <button class="tile tile-active" onclick="salvaInviaDurate()" style="height:60px; flex-direction:row; justify-content:center; margin-bottom:20px; background: var(--color-green) !important;">
+        <div class="tile-label" style="color:white !important;">INVIA CONFIGURAZIONE</div>
+    </button>
+
     <div class="setup-item">
         <p><b>Configurazione MQTT</b></p>
         <p style="font-size:12px; color:gray">Server: HiveMQ Cloud<br>Status: Protetto</p>
@@ -197,7 +270,6 @@
     </button>
 </div>
 
-<!-- NAVIGAZIONE -->
 <div class="bottomnav">
     <div class="navbtn active" id="b1" onclick="showTab('home','b1')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -222,34 +294,26 @@
 
     let allTimersActive = true;
 
-    // --- CARICAMENTO STATI SALVATI ---
     window.onload = () => {
-        // Ripristina stato ON/OFF
         const savedPower = localStorage.getItem('allTimersActive');
         if (savedPower !== null) {
             allTimersActive = (savedPower === 'true');
             updatePowerUI();
         }
-        // Ripristina info ultimo ciclo
         const lastCycle = JSON.parse(localStorage.getItem('ultimoCiclo'));
         if (lastCycle) {
             document.getElementById('last-cycle-name').innerText = lastCycle.nome;
             document.getElementById('last-cycle-time').innerText = lastCycle.ora;
         }
+        caricaDurateSalvate();
     };
 
-    
     client.on('connect', () => {
         document.getElementById('conn-dot').style.background = "var(--color-green)";
         document.getElementById('conn-status-desc').innerText = "Connesso al Cloud HiveMQ";
-    
-        // Chiamiamo updatePowerUI per impostare il titolo corretto (Online o Sospesi)
-        // in base a quello che abbiamo letto dal localStorage all'avvio
         updatePowerUI();
-    
         client.subscribe(['antizanzare/stato', 'antizanzare/timer_status']);
     });
-  
 
     client.on('message', (topic, message) => {
         const msg = message.toString();
@@ -283,13 +347,20 @@
         document.getElementById('last-cycle-time').innerText = ora;
     }
 
+    // --- AGGIORNATO: COSTRUISCE LA LISTA SIA NELLA TAB TIMER CHE NELLA TAB SETUP ---
     function updateTimerList(payload) {
         const container = document.getElementById('timer-container');
+        const setupContainer = document.getElementById('setup-timer-list');
+        
         container.innerHTML = "";
+        setupContainer.innerHTML = "";
+        
         if (payload === "EMPTY") {
             container.innerHTML = '<p style="text-align:center; color:#999; margin-top:40px;">Nessun timer configurato</p>';
+            setupContainer.innerHTML = '<p style="font-size:12px; color:var(--text-secondary); text-align:center; margin:5px 0;">Nessun timer da modificare</p>';
             return;
         }
+        
         const timers = payload.split(',');
         timers.forEach((t, index) => {
             const parts = t.split(':');
@@ -299,6 +370,7 @@
             const attivo = parts[3] === "ON";
             const accent = parts[0] === 'R' ? 'var(--color-green)' : 'var(--color-red)';
 
+            // 1. Popola la schermata TIMER standard
             container.insertAdjacentHTML('beforeend', `
                 <div class="timer-tile">
                     <div style="display:flex; align-items:center;">
@@ -310,43 +382,108 @@
                     </div>
                     <input type="checkbox" class="ios-switch" ${attivo ? 'checked' : ''} onchange="sendToggle(${index})">
                 </div>`);
+                
+            // 2. Popola la lista di eliminazione rapida nella scheda SETUP
+            setupContainer.insertAdjacentHTML('beforeend', `
+                <div class="setup-timer-row">
+                    <div style="font-size: 14px; font-weight:700;">
+                        <span style="color:${accent}; font-weight:900;">•</span> [${parts[0]}] ${orario}
+                    </div>
+                    <button class="btn-small-del" onclick="eliminaTimer(${index})">ELIMINA</button>
+                </div>`);
         });
     }
 
+    // --- NUOVE FUNZIONI DI CONFIGURAZIONE TIMER DA PWA ---
+    function aggiungiNuovoTimer() {
+        const tipo = document.getElementById('new-timer-type').value;
+        const orario = document.getElementById('new-timer-time').value;
+        if(!orario || orario.indexOf(':') === -1) return;
+        
+        const parts = orario.split(':');
+        const h = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10);
+        
+        // Stringa testuale: ADD_TIMER:R,14,30
+        const payload = `ADD_TIMER:${tipo},${h},${m}`;
+        if (client.connected) {
+            client.publish('antizanzare/comandi', payload);
+            alert("Richiesta aggiunta inviata!");
+        }
+    }
+
+    function eliminaTimer(index) {
+        if(confirm("Vuoi davvero eliminare questo timer?")) {
+            const payload = `DEL_TIMER:${index}`;
+            if (client.connected) {
+                client.publish('antizanzare/comandi', payload);
+            }
+        }
+    }
+
     function toggleAllTimers() {
-        // Invertiamo lo stato attuale
         allTimersActive = !allTimersActive;
-        // Salviamo la preferenza
         localStorage.setItem('allTimersActive', allTimersActive);
-        // INVIAMO IL COMANDO all'ESP32 (Fondamentale!)
         const comando = allTimersActive ? "ALL_ON" : "ALL_OFF";
         sendCmd(comando);
-        // Aggiorniamo l'interfaccia
         updatePowerUI();
-        console.log("Comando inviato: " + comando); // Per debug
     }
     
     function updatePowerUI() {
         const title = document.getElementById('conn-status-title');
         const powerBtn = document.getElementById('btn-power');
-    
         if (allTimersActive) {
-        title.innerText = "Sistema Online";
-        title.style.color = "var(--text-primary)";
-        powerBtn.style.boxShadow = "var(--shadow-out)"; // Ritorna normale
+            title.innerText = "Sistema Online";
+            title.style.color = "var(--text-primary)";
+            powerBtn.style.boxShadow = "var(--shadow-out)";
         } else {
-        title.innerText = "Timer Sospesi";
-        title.style.color = "var(--color-red)";
-        powerBtn.style.boxShadow = "var(--shadow-in)"; // Sembra premuto
+            title.innerText = "Timer Sospesi";
+            title.style.color = "var(--color-red)";
+            powerBtn.style.boxShadow = "var(--shadow-in)";
         }
     }
 
     function checkSetupAccess() {
         const pass = prompt("Inserisci la password di amministrazione:");
-        if (pass === "1234") { // Sostituisci "1234" con la tua password
+        if (pass === "1234") { 
             showTab('setup', 'b3');
         } else if (pass !== null) {
             alert("Password errata!");
+        }
+    }
+
+    function salvaInviaDurate() {
+        const rm  = document.getElementById('setup-rm').value || 60;
+        const rp1 = document.getElementById('setup-rp1').value || 60;
+        const rv  = document.getElementById('setup-rv').value || 60;
+        const im  = document.getElementById('setup-im').value || 60;
+        const ip2 = document.getElementById('setup-ip2').value || 60;
+        const iv  = document.getElementById('setup-iv').value || 60;
+        const dp1 = document.getElementById('setup-dp1').value || 128;
+        const dp2 = document.getElementById('setup-dp2').value || 128;
+
+        const payload = `SET_DUR:${rm},${rp1},${rv},${im},${ip2},${iv},${dp1},${dp2}`;
+        if (client.connected) {
+            client.publish('antizanzare/comandi', payload);
+            alert("Configurazione inviata all'ESP32!");
+        } else {
+            alert("Errore: App non connessa a HiveMQ!");
+        }
+        const localData = { rm, rp1, rv, im, ip2, iv, dp1, dp2 };
+        localStorage.setItem('configDurate', JSON.stringify(localData));
+    }
+
+    function caricaDurateSalvate() {
+        const salvate = JSON.parse(localStorage.getItem('configDurate'));
+        if (salvate) {
+            if(document.getElementById('setup-rm'))  document.getElementById('setup-rm').value = salvate.rm;
+            if(document.getElementById('setup-rp1')) document.getElementById('setup-rp1').value = salvate.rp1;
+            if(document.getElementById('setup-rv'))  document.getElementById('setup-rv').value = salvate.rv;
+            if(document.getElementById('setup-im'))  document.getElementById('setup-im').value = salvate.im;
+            if(document.getElementById('setup-ip2')) document.getElementById('setup-ip2').value = salvate.ip2;
+            if(document.getElementById('setup-iv'))  document.getElementById('setup-iv').value = salvate.iv;
+            if(document.getElementById('setup-dp1')) document.getElementById('setup-dp1').value = salvate.dp1;
+            if(document.getElementById('setup-dp2')) document.getElementById('setup-dp2').value = salvate.dp2;
         }
     }
 
