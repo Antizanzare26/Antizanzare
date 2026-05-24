@@ -114,7 +114,7 @@
 
         .info-box { background: var(--bg-neumorphic); border-radius: 20px; padding: 15px; box-shadow: var(--shadow-in); margin-bottom: 35px; font-size: 13px; color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.5); }
 
-        #btn-power { border: none; background: var(--bg-neumorphic); box-shadow: var(--shadow-out); border-radius: 50%; width: 50px; height: 50px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        #btn-power { border: none; background: var(--bg-neumorphic); box-shadow: var(--shadow-out); border-radius: 50%; width: 50px; height: 50px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
         
         .timer-tile { background: var(--bg-neumorphic); border-radius: 22px; padding: 20px 25px; box-shadow: var(--shadow-out); display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         
@@ -260,14 +260,6 @@
     <button class="tile tile-active" onclick="salvaInviaDurate()" style="height:60px; flex-direction:row; justify-content:center; margin-bottom:20px; background: var(--color-green) !important;">
         <div class="tile-label" style="color:white !important;">INVIA CONFIGURAZIONE</div>
     </button>
-
-    <div class="setup-item">
-        <p><b>Configurazione MQTT</b></p>
-        <p style="font-size:12px; color:gray">Server: HiveMQ Cloud<br>Status: Protetto (LWT Attivo)</p>
-    </div>
-    <button class="tile" onclick="location.reload()" style="height:60px; flex-direction:row; justify-content:center">
-        <div class="tile-label">Riavvia App</div>
-    </button>
 </div>
 
 <div class="bottomnav">
@@ -296,11 +288,6 @@
     let isHardwareOnline = false;
 
     window.onload = () => {
-        const savedPower = localStorage.getItem('allTimersActive');
-        if (savedPower !== null) {
-            allTimersActive = (savedPower === 'true');
-            updatePowerUI();
-        }
         const lastCycle = JSON.parse(localStorage.getItem('ultimoCiclo'));
         if (lastCycle) {
             document.getElementById('last-cycle-name').innerText = lastCycle.nome;
@@ -310,16 +297,20 @@
     };
 
     client.on('connect', () => {
-        // Telefono connesso a HiveMQ, ma aspettiamo lo stato dell'ESP32
         document.getElementById('conn-dot').style.background = "#ffcc00"; // Giallo
         document.getElementById('conn-status-title').innerText = "Cloud Connesso";
         document.getElementById('conn-status-desc').innerText = "Verifica stato centralina...";
-        updatePowerUI();
-        client.subscribe(['antizanzare/stato', 'antizanzare/timer_status', 'antizanzare/status_hardware']);
+        
+        // Iscrizione a tutti i topic compreso il nuovo power_status
+        client.subscribe([
+            'antizanzare/stato', 
+            'antizanzare/timer_status', 
+            'antizanzare/status_hardware', 
+            'antizanzare/power_status'
+        ]);
     });
 
     client.on('close', () => {
-        // Errore di rete sul telefono
         isHardwareOnline = false;
         document.getElementById('conn-dot').style.background = "var(--color-red)"; // Rosso
         document.getElementById('conn-status-title').innerText = "Disconnesso";
@@ -329,7 +320,7 @@
     client.on('message', (topic, message) => {
         const msg = message.toString();
         
-        // 1. STATO CONNESSIONE HARDWARE (ONLINE / OFFLINE) via LWT
+        // 1. STATO CONNESSIONE HARDWARE
         if (topic === 'antizanzare/status_hardware') {
             const dot = document.getElementById('conn-dot');
             const title = document.getElementById('conn-status-title');
@@ -350,29 +341,35 @@
             }
         }
 
-        // 2. STATO CICLO IN ESECUZIONE
+        // 2. SINCRONIZZAZIONE PULSANTE GENERALE (Tra più telefoni)
+        if (topic === 'antizanzare/power_status') {
+            allTimersActive = (msg === "ON");
+            updatePowerUI();
+        }
+
+        // 3. STATO CICLO IN ESECUZIONE
         if (topic === 'antizanzare/stato') {
             const desc = document.getElementById('conn-status-desc');
             const tR = document.getElementById('tile-rep'), tI = document.getElementById('tile-ins');
-            tR.classList.remove('tile-active'); tI.classList.remove('tile-active');
             
             if (msg === "IDLE") {
+                tR.classList.remove('tile-active'); 
+                tI.classList.remove('tile-active');
                 if (isHardwareOnline) desc.innerText = "Centralina in attesa di comandi";
             } else {
                 desc.innerText = "In esecuzione: " + msg;
-                
                 if (msg.includes("RUNNING_REP")) {
-                    tR.classList.add('tile-active');
+                    tR.classList.add('tile-active'); tI.classList.remove('tile-active');
                     saveLastCycle("Repellente");
                 }
                 if (msg.includes("RUNNING_INS")) {
-                    tI.classList.add('tile-active');
+                    tI.classList.add('tile-active'); tR.classList.remove('tile-active');
                     saveLastCycle("Insetticida");
                 }
             }
         }
         
-        // 3. AGGIORNAMENTO LISTA TIMER
+        // 4. AGGIORNAMENTO LISTA TIMER (In tempo reale se modificati da altri)
         if (topic === 'antizanzare/timer_status') updateTimerList(msg);
     });
 
@@ -431,36 +428,30 @@
         const orario = document.getElementById('new-timer-time').value;
         if(!orario || orario.indexOf(':') === -1) return;
         const parts = orario.split(':');
-        const h = parseInt(parts[0], 10);
-        const m = parseInt(parts[1], 10);
-        sendCmd(`ADD_TIMER:${tipo},${h},${m}`);
-        alert("Comando inviato!");
+        sendCmd(`ADD_TIMER:${tipo},${parseInt(parts[0], 10)},${parseInt(parts[1], 10)}`);
     }
 
     function eliminaTimer(index) {
-        if(confirm("Vuoi davvero eliminare questo timer?")) {
-            sendCmd(`DEL_TIMER:${index}`);
-        }
+        if(confirm("Vuoi davvero eliminare questo timer?")) sendCmd(`DEL_TIMER:${index}`);
     }
 
     function toggleAllTimers() {
-        allTimersActive = !allTimersActive;
-        localStorage.setItem('allTimersActive', allTimersActive);
-        sendCmd(allTimersActive ? "ALL_ON" : "ALL_OFF");
-        updatePowerUI();
+        // Invia il comando: la grafica si aggiornerà quando il broker risponderà su power_status
+        sendCmd(allTimersActive ? "ALL_OFF" : "ALL_ON");
     }
     
     function updatePowerUI() {
         const title = document.getElementById('conn-status-title');
         const powerBtn = document.getElementById('btn-power');
-        if (!isHardwareOnline && title.innerText === "Centralina Offline") return;
         
         if (allTimersActive) {
             if(isHardwareOnline) title.innerText = "Sistema Online";
             powerBtn.style.boxShadow = "var(--shadow-out)";
+            powerBtn.style.background = "var(--bg-neumorphic)";
         } else {
             if(isHardwareOnline) title.innerText = "Timer Sospesi";
             powerBtn.style.boxShadow = "var(--shadow-in)";
+            powerBtn.style.background = "#e4e4e9";
         }
     }
 
@@ -480,8 +471,8 @@
         const dp1 = document.getElementById('setup-dp1').value || 128;
         const dp2 = document.getElementById('setup-dp2').value || 128;
 
-        sendCmd(`SET_DUR:${rm},${rp1},${rv},${im},${ip2},${iv},${dp1},${dp2}`);
-        alert("Configurazione inviata all'ESP32!");
+        sendCmd(`SET_DUR:${rm},${rp1},${rv},${im},${ip2},./${iv},${dp1},${dp2}`);
+        alert("Configurazione inviata!");
         localStorage.setItem('configDurate', JSON.stringify({ rm, rp1, rv, im, ip2, iv, dp1, dp2 }));
     }
 
