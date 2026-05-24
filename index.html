@@ -107,9 +107,9 @@
         }
 
         .status-card { background: var(--bg-neumorphic); border-radius: 28px; padding: 22px; box-shadow: var(--shadow-out); margin-bottom: 25px; display: flex; align-items: center; gap: 15px; }
-        .status-indicator { width: 10px; height: 10px; border-radius: 50%; background: var(--color-red); }
+        .status-indicator { width: 10px; height: 10px; border-radius: 50%; background: var(--color-red); transition: background 0.3s ease; }
         .status-text { flex-grow: 1; }
-        .status-title { font-weight: 800; font-size: 19px; letter-spacing: -0.4px; }
+        .status-title { font-weight: 800; font-size: 19px; letter-spacing: -0.4px; transition: color 0.3s ease; }
         .status-desc { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
 
         .info-box { background: var(--bg-neumorphic); border-radius: 20px; padding: 15px; box-shadow: var(--shadow-in); margin-bottom: 35px; font-size: 13px; color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.5); }
@@ -156,7 +156,7 @@
     </div>
 
     <div class="info-box" id="last-cycle-box">
-        <b>Ultimo ciclo:</b> <span id="last-cycle-name">Nessuno</span> alle <span id="last-cycle-time">--:--</span>
+        <b>Ultimo ciclo effettuato:</b> <span id="last-cycle-name">Nessuno</span> alle <span id="last-cycle-time">--:--</span>
     </div>
 
     <div class="section-header">Controllo Manuale</div>
@@ -263,7 +263,7 @@
 
     <div class="setup-item">
         <p><b>Configurazione MQTT</b></p>
-        <p style="font-size:12px; color:gray">Server: HiveMQ Cloud<br>Status: Protetto</p>
+        <p style="font-size:12px; color:gray">Server: HiveMQ Cloud<br>Status: Protetto (LWT Attivo)</p>
     </div>
     <button class="tile" onclick="location.reload()" style="height:60px; flex-direction:row; justify-content:center">
         <div class="tile-label">Riavvia App</div>
@@ -293,6 +293,7 @@
     });
 
     let allTimersActive = true;
+    let isHardwareOnline = false;
 
     window.onload = () => {
         const savedPower = localStorage.getItem('allTimersActive');
@@ -309,23 +310,57 @@
     };
 
     client.on('connect', () => {
-        document.getElementById('conn-dot').style.background = "var(--color-green)";
-        document.getElementById('conn-status-desc').innerText = "Connesso al Cloud HiveMQ";
+        // Telefono connesso a HiveMQ, ma aspettiamo lo stato dell'ESP32
+        document.getElementById('conn-dot').style.background = "#ffcc00"; // Giallo
+        document.getElementById('conn-status-title').innerText = "Cloud Connesso";
+        document.getElementById('conn-status-desc').innerText = "Verifica stato centralina...";
         updatePowerUI();
-        client.subscribe(['antizanzare/stato', 'antizanzare/timer_status']);
+        client.subscribe(['antizanzare/stato', 'antizanzare/timer_status', 'antizanzare/status_hardware']);
+    });
+
+    client.on('close', () => {
+        // Errore di rete sul telefono
+        isHardwareOnline = false;
+        document.getElementById('conn-dot').style.background = "var(--color-red)"; // Rosso
+        document.getElementById('conn-status-title').innerText = "Disconnesso";
+        document.getElementById('conn-status-desc').innerText = "Nessun accesso a internet o al broker";
     });
 
     client.on('message', (topic, message) => {
         const msg = message.toString();
+        
+        // 1. STATO CONNESSIONE HARDWARE (ONLINE / OFFLINE) via LWT
+        if (topic === 'antizanzare/status_hardware') {
+            const dot = document.getElementById('conn-dot');
+            const title = document.getElementById('conn-status-title');
+            const desc = document.getElementById('conn-status-desc');
+            
+            if (msg === "ONLINE") {
+                isHardwareOnline = true;
+                dot.style.background = "var(--color-green)"; // Verde
+                title.innerText = allTimersActive ? "Sistema Online" : "Timer Sospesi";
+                title.style.color = "var(--text-primary)";
+                desc.innerText = "Centralina ESP32 connessa e attiva";
+            } else if (msg === "OFFLINE") {
+                isHardwareOnline = false;
+                dot.style.background = "#ffcc00"; // Giallo
+                title.innerText = "Centralina Offline";
+                title.style.color = "var(--text-primary)";
+                desc.innerText = "ESP32 spento o non raggiungibile";
+            }
+        }
+
+        // 2. STATO CICLO IN ESECUZIONE
         if (topic === 'antizanzare/stato') {
             const desc = document.getElementById('conn-status-desc');
             const tR = document.getElementById('tile-rep'), tI = document.getElementById('tile-ins');
             tR.classList.remove('tile-active'); tI.classList.remove('tile-active');
             
             if (msg === "IDLE") {
-                desc.innerText = "In attesa di comando";
+                if (isHardwareOnline) desc.innerText = "Centralina in attesa di comandi";
             } else {
-                desc.innerText = "Attivo: " + msg;
+                desc.innerText = "In esecuzione: " + msg;
+                
                 if (msg.includes("RUNNING_REP")) {
                     tR.classList.add('tile-active');
                     saveLastCycle("Repellente");
@@ -336,6 +371,8 @@
                 }
             }
         }
+        
+        // 3. AGGIORNAMENTO LISTA TIMER
         if (topic === 'antizanzare/timer_status') updateTimerList(msg);
     });
 
@@ -347,13 +384,10 @@
         document.getElementById('last-cycle-time').innerText = ora;
     }
 
-    // --- AGGIORNATO: COSTRUISCE LA LISTA SIA NELLA TAB TIMER CHE NELLA TAB SETUP ---
     function updateTimerList(payload) {
         const container = document.getElementById('timer-container');
         const setupContainer = document.getElementById('setup-timer-list');
-        
-        container.innerHTML = "";
-        setupContainer.innerHTML = "";
+        container.innerHTML = ""; setupContainer.innerHTML = "";
         
         if (payload === "EMPTY") {
             container.innerHTML = '<p style="text-align:center; color:#999; margin-top:40px;">Nessun timer configurato</p>';
@@ -370,7 +404,6 @@
             const attivo = parts[3] === "ON";
             const accent = parts[0] === 'R' ? 'var(--color-green)' : 'var(--color-red)';
 
-            // 1. Popola la schermata TIMER standard
             container.insertAdjacentHTML('beforeend', `
                 <div class="timer-tile">
                     <div style="display:flex; align-items:center;">
@@ -383,7 +416,6 @@
                     <input type="checkbox" class="ios-switch" ${attivo ? 'checked' : ''} onchange="sendToggle(${index})">
                 </div>`);
                 
-            // 2. Popola la lista di eliminazione rapida nella scheda SETUP
             setupContainer.insertAdjacentHTML('beforeend', `
                 <div class="setup-timer-row">
                     <div style="font-size: 14px; font-weight:700;">
@@ -394,62 +426,48 @@
         });
     }
 
-    // --- NUOVE FUNZIONI DI CONFIGURAZIONE TIMER DA PWA ---
     function aggiungiNuovoTimer() {
         const tipo = document.getElementById('new-timer-type').value;
         const orario = document.getElementById('new-timer-time').value;
         if(!orario || orario.indexOf(':') === -1) return;
-        
         const parts = orario.split(':');
         const h = parseInt(parts[0], 10);
         const m = parseInt(parts[1], 10);
-        
-        // Stringa testuale: ADD_TIMER:R,14,30
-        const payload = `ADD_TIMER:${tipo},${h},${m}`;
-        if (client.connected) {
-            client.publish('antizanzare/comandi', payload);
-            alert("Richiesta aggiunta inviata!");
-        }
+        sendCmd(`ADD_TIMER:${tipo},${h},${m}`);
+        alert("Comando inviato!");
     }
 
     function eliminaTimer(index) {
         if(confirm("Vuoi davvero eliminare questo timer?")) {
-            const payload = `DEL_TIMER:${index}`;
-            if (client.connected) {
-                client.publish('antizanzare/comandi', payload);
-            }
+            sendCmd(`DEL_TIMER:${index}`);
         }
     }
 
     function toggleAllTimers() {
         allTimersActive = !allTimersActive;
         localStorage.setItem('allTimersActive', allTimersActive);
-        const comando = allTimersActive ? "ALL_ON" : "ALL_OFF";
-        sendCmd(comando);
+        sendCmd(allTimersActive ? "ALL_ON" : "ALL_OFF");
         updatePowerUI();
     }
     
     function updatePowerUI() {
         const title = document.getElementById('conn-status-title');
         const powerBtn = document.getElementById('btn-power');
+        if (!isHardwareOnline && title.innerText === "Centralina Offline") return;
+        
         if (allTimersActive) {
-            title.innerText = "Sistema Online";
-            title.style.color = "var(--text-primary)";
+            if(isHardwareOnline) title.innerText = "Sistema Online";
             powerBtn.style.boxShadow = "var(--shadow-out)";
         } else {
-            title.innerText = "Timer Sospesi";
-            title.style.color = "var(--color-red)";
+            if(isHardwareOnline) title.innerText = "Timer Sospesi";
             powerBtn.style.boxShadow = "var(--shadow-in)";
         }
     }
 
     function checkSetupAccess() {
         const pass = prompt("Inserisci la password di amministrazione:");
-        if (pass === "1234") { 
-            showTab('setup', 'b3');
-        } else if (pass !== null) {
-            alert("Password errata!");
-        }
+        if (pass === "1234") showTab('setup', 'b3');
+        else if (pass !== null) alert("Password errata!");
     }
 
     function salvaInviaDurate() {
@@ -462,15 +480,9 @@
         const dp1 = document.getElementById('setup-dp1').value || 128;
         const dp2 = document.getElementById('setup-dp2').value || 128;
 
-        const payload = `SET_DUR:${rm},${rp1},${rv},${im},${ip2},${iv},${dp1},${dp2}`;
-        if (client.connected) {
-            client.publish('antizanzare/comandi', payload);
-            alert("Configurazione inviata all'ESP32!");
-        } else {
-            alert("Errore: App non connessa a HiveMQ!");
-        }
-        const localData = { rm, rp1, rv, im, ip2, iv, dp1, dp2 };
-        localStorage.setItem('configDurate', JSON.stringify(localData));
+        sendCmd(`SET_DUR:${rm},${rp1},${rv},${im},${ip2},${iv},${dp1},${dp2}`);
+        alert("Configurazione inviata all'ESP32!");
+        localStorage.setItem('configDurate', JSON.stringify({ rm, rp1, rv, im, ip2, iv, dp1, dp2 }));
     }
 
     function caricaDurateSalvate() {
