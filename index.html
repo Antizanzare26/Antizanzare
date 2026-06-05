@@ -286,6 +286,7 @@
 
     let allTimersActive = true;
     let isHardwareOnline = false;
+    let isInitialLoad = true;
 
     window.onload = () => {
         const lastCycle = JSON.parse(localStorage.getItem('ultimoCiclo'));
@@ -294,6 +295,7 @@
             document.getElementById('last-cycle-time').innerText = lastCycle.ora;
         }
         caricaDurateSalvate();
+        setTimeout(() => { isInitialLoad = false; }, 2000);
     };
 
     client.on('connect', () => {
