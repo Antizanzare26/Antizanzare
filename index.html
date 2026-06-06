@@ -376,6 +376,7 @@
     });
 
     function saveLastCycle(tipo) {
+        if (isInitialLoad) return;
         const ora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const dati = { nome: tipo, ora: ora };
         localStorage.setItem('ultimoCiclo', JSON.stringify(dati));
