@@ -474,7 +474,7 @@
         const dp1 = document.getElementById('setup-dp1').value || 128;
         const dp2 = document.getElementById('setup-dp2').value || 128;
 
-        sendCmd(`SET_DUR:${rm},${rp1},${rv},${im},${ip2},./${iv},${dp1},${dp2}`);
+        sendCmd(`SET_DUR:${rm},${rp1},${rv},${im},${ip2},${iv},${dp1},${dp2}`);
         alert("Configurazione inviata!");
         localStorage.setItem('configDurate', JSON.stringify({ rm, rp1, rv, im, ip2, iv, dp1, dp2 }));
     }
