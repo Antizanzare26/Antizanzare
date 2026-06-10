@@ -308,8 +308,11 @@
             'antizanzare/stato', 
             'antizanzare/timer_status', 
             'antizanzare/status_hardware', 
-            'antizanzare/power_status'
+            'antizanzare/power_status',
+            'antizanzare/last_cycle'
         ]);
+        // --- FORZA L'ESP32 A RISPONDERE SUBITO ---
+        client.publish('antizanzare/comandi', 'REQ_SYNC');
     });
 
     client.on('close', () => {
@@ -362,17 +365,32 @@
                 desc.innerText = "In esecuzione: " + msg;
                 if (msg.includes("RUNNING_REP")) {
                     tR.classList.add('tile-active'); tI.classList.remove('tile-active');
-                    saveLastCycle("Repellente");
                 }
                 if (msg.includes("RUNNING_INS")) {
                     tI.classList.add('tile-active'); tR.classList.remove('tile-active');
-                    saveLastCycle("Insetticida");
                 }
             }
         }
         
         // 4. AGGIORNAMENTO LISTA TIMER (In tempo reale se modificati da altri)
         if (topic === 'antizanzare/timer_status') updateTimerList(msg);
+
+        // 5. AGGIORNAMENTO ULTIMO CICLO DA MEMORIA ESP32
+        if (topic === 'antizanzare/last_cycle') {
+            const parts = msg.split(','); // Divide Tipo da Orario (es: "Repellente,08:30")
+            if(parts.length === 2) {
+                const tipo = parts[0];
+                const ora = parts[1];
+        
+                // Aggiorna la grafica
+                document.getElementById('last-cycle-name').innerText = tipo;
+                document.getElementById('last-cycle-time').innerText = ora;
+        
+                // Aggiorna il localStorage per sicurezza locale
+                const dati = { nome: tipo, ora: ora };
+                localStorage.setItem('ultimoCiclo', JSON.stringify(dati));
+            }
+        }
     });
 
     function saveLastCycle(tipo) {
